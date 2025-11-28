@@ -1,0 +1,25 @@
+# --- Node/React/Electron ---
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+*.log
+
+# --- Electron build output ---
+frontend/electron/out/
+
+# --- Python (backend) ---
+backend/__pycache__/
+backend/.env
+*.pyc
+*.pyo
+
+# --- System files ---
+*.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+
+# --- IDE/editor/project config files ---
+.vscode/
+.idea/
+.env
