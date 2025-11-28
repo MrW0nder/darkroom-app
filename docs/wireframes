@@ -1,0 +1,113 @@
+darkroom-app/
+│
+├── backend/ 
+│   ├── ai
+│   ├── api
+│   ├── jobs
+│   ├── main.py
+│   ├── requirements.txt 
+│   └── utils
+│
+├── docs/  
+│   ├── DARKROOM_FEATURE_CHECKLIST.md          
+│   └── wireframes
+│   
+├── frontend/  
+│   ├── node_modules
+│   │   └── (TOO MANY FOLDERS AND FILES TO COUNT SO I WONT WRITE THEM ALL) 
+│   │
+│   ├── public/       
+│   │   └── index.html 
+│   │
+│   ├── src/          
+│   │   ├── assets/
+│   │   │   └── icon.png
+│   │   │
+│   │   ├── components/  
+│   │   │   ├── panels/
+│   │   │   │   └── tool-options-panel.tsx
+│   │   │   │
+│   │   │   ├──tools/
+│   │   │   │   ├── brush-tool.tsx
+│   │   │   │   ├── selection-tools.tsx
+│   │   │   │   ├── shape-tools.tsx
+│   │   │   │   └── text-tool.tsx
+│   │   │   │
+│   │   │   └──ui/
+│   │   │       ├── button.tsx 
+│   │   │       ├── canvas.tsx
+│   │   │       ├── card.tsx
+│   │   │       ├── color-picker.tsx
+│   │   │       ├── dialog.tsx
+│   │   │       ├── export-dialog.tsx
+│   │   │       ├── input.tsx
+│   │   │       ├── label.tsx
+│   │   │       ├── layers-panel.tsx
+│   │   │       ├── properties-panel.tsx
+│   │   │       ├── select.tsx
+│   │   │       ├── slider.tsx
+│   │   │       └── toolbar.tsx
+│   │   │
+│   │   ├──context/
+│   │   │   └── (EMPTY FOLDER)
+│   │   │
+│   │   ├──electron/
+│   │   │   ├── electron.js
+│   │   │   ├── main.js
+│   │   │   └── preload.js
+│   │   │
+│   │   ├── hooks/
+│   │   │   ├── useCanvasTools.ts
+│   │   │   ├── use-keyboard-shortcuts.ts
+│   │   │   └── useSelection.ts
+│   │   │
+│   │   ├── lib/
+│   │   │   ├── tools/
+│   │   │   │   ├── brush-engine.ts
+│   │   │   │   ├── selection-manager.ts
+│   │   │   │   ├── shape-renderer.ts
+│   │   │   │   └── text-manager.ts
+│   │   │   │
+│   │   │   ├── ai-service.ts
+│   │   │   ├── history-manager.ts
+│   │   │   ├── image-processor.ts
+│   │   │   ├── image-utils.ts
+│   │   │   ├── layers-manager.ts
+│   │   │   └── utils.ts
+│   │   │
+│   │   ├── main/
+│   │   │   └── ipc-handlers.ts
+│   │   │
+│   │   ├── pages/
+│   │   │   └── darkroom.tsx
+│   │   │
+│   │   ├── services/
+│   │   │   └── ai/
+│   │   │       ├── api-client.ts
+│   │   │       ├── model-loader.ts
+│   │   │       └── processing-queue.ts
+│   │   │
+│   │   ├── styles/  
+│   │   │       └── (EMPTY FOLDER)
+│   │   │ 
+│   │   ├── types/
+│   │   │       └── image-types.ts
+│   │   │ 
+│   │   ├── utils/
+│   │   │       └── file-utils.ts
+│   │   │ 
+│   │   ├── App.tsx
+│   │   ├── index.tsx 
+│   │   └── main.tsx
+│   │
+│   ├── .env
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+│
+├── .gitignore
+├── LICENSE
+└── README.md

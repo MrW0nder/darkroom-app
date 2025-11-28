@@ -1,0 +1,18 @@
+name: Frontend Build Check
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Install dependencies
+      run: cd frontend && npm ci
+    - name: Build frontend
+      run: cd frontend && npm run build
