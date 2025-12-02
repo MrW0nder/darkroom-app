@@ -1,5 +1,10 @@
 darkroom-app/
 │
+├── .GitHub
+│   └── workflows
+│       ├── backend.yml
+│       └── frontend.yml
+│
 ├── backend/ 
 │   ├── ai
 │   ├── api
@@ -12,14 +17,27 @@ darkroom-app/
 │   ├── DARKROOM_FEATURE_CHECKLIST.md          
 │   └── wireframes
 │   
-├── frontend/  
+├── frontend/
+│   │   ├── dist/
+│   │   │   ├── assets/
+│   │   │   │   └── index-8bd4e8a7.js
+│   │   │   │
+│   │   │   ├── public/
+│   │   │   │   └── index.html
+│   │   │   │
+│   │   │   └── index.html
+│   │   │
+│   │   └── electron/
+│   │       ├── main.js
+│   │       └── preload.js
+│   │
 │   ├── node_modules
 │   │   └── (TOO MANY FOLDERS AND FILES TO COUNT SO I WONT WRITE THEM ALL) 
 │   │
 │   ├── public/       
 │   │   └── index.html 
 │   │
-│   ├── src/          
+│   ├── src/
 │   │   ├── assets/
 │   │   │   └── icon.png
 │   │   │
@@ -50,11 +68,6 @@ darkroom-app/
 │   │   │
 │   │   ├──context/
 │   │   │   └── (EMPTY FOLDER)
-│   │   │
-│   │   ├──electron/
-│   │   │   ├── electron.js
-│   │   │   ├── main.js
-│   │   │   └── preload.js
 │   │   │
 │   │   ├── hooks/
 │   │   │   ├── useCanvasTools.ts
