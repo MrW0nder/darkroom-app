@@ -13,13 +13,37 @@ backend/.env
 *.pyc
 *.pyo
 
-# --- System files ---
+# Virtualenvs (local)
+.venv/
+venv/
+ENV/
+env/
+
+# SQLite / local DB + uploaded files
+backend/storage/
+*.sqlite
+*.db
+
+# Backup files
+*.bak
+*~
+
+# System files
 *.DS_Store
 Thumbs.db
 ehthumbs.db
 Icon?
 
-# --- IDE/editor/project config files ---
+# IDE/editor/project config files
 .vscode/
 .idea/
 .env
+*.swp
+
+# Build / dist artifacts
+dist/
+build/
+
+# npm/yarn lockfiles (optional: keep to ensure deterministic installs)
+# package-lock.json
+# yarn.lock
