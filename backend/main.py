@@ -1,17 +1,23 @@
 # backend/main.py
 import os
 import io
+import logging
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from PIL import Image as PILImage
 
-from backend.db import init_db
+from backend.db import init_db, STORAGE_DIR, DATABASE_URL  # read configured storage & DB
 from backend.api.imports import router as imports_router
 
 APP_TITLE = "Darkroom Backend"
 FRONTEND_ORIGIN = os.environ.get("DARKROOM_FRONTEND_ORIGIN", "http://localhost:5173")
+
+# Configure basic logging
+LOG_LEVEL = os.environ.get("DARKROOM_LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("darkroom")
 
 app = FastAPI(title=APP_TITLE)
 
@@ -28,9 +34,18 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     """
-    Initialize DB/tables and any other startup tasks.
+    Initialize DB/tables and log configuration.
     """
+    # Initialize database tables
     init_db()
+
+    # Log effective storage path and DB url for easy debugging
+    try:
+        logger.info("Storage directory: %s", STORAGE_DIR)
+        logger.info("Database URL: %s", DATABASE_URL)
+    except Exception:
+        # If STORAGE_DIR or DATABASE_URL are not present, still continue
+        logger.exception("Unable to read storage/db configuration on startup")
 
 
 @app.get("/health", tags=["health"])
@@ -52,6 +67,7 @@ async def process_image(file: UploadFile = File(...)):
         fmt = img.format
         return JSONResponse({"filename": file.filename, "format": fmt, "width": width, "height": height})
     except Exception as e:
+        logger.exception("Error processing image")
         return JSONResponse({"error": str(e)}, status_code=400)
 
 
@@ -62,4 +78,5 @@ app.include_router(imports_router)
 if __name__ == "__main__":
     # Run via: python -m backend.main (not necessary if using uvicorn)
     import uvicorn
+
     uvicorn.run("backend.main:app", host="127.0.0.1", port=int(os.environ.get("PORT", 8000)), reload=True)
