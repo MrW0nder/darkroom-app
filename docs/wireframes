@@ -1,17 +1,54 @@
 darkroom-app/
 │
-├── .GitHub
+├── .gitHub/
 │   └── workflows
 │       ├── backend.yml
 │       └── frontend.yml
 │
+├── .venv/
+│   ├── Include/
+│   │   └── site/
+│   │       └── python3.14
+│   │           └── greenlet
+│   │               └── greenlet.h
+│   │
+│   ├── Lib/
+│   │   └── site-packages
+│   │       └── (a bunch of folders & files)
+│   │
+│   ├── Scripts/
+│   │   └── (a bunch of files)
+│   │
+│   ├── .gitignore
+│   └── pyvenv.cfg
+│
 ├── backend/ 
-│   ├── ai
-│   ├── api
-│   ├── jobs
+│   ├── _pycache_/
+│   │   ├── db.cpython-314.pyc
+│   │   ├── init_db.cpython-314.pyc
+│   │   ├── main.cpython-314.pyc
+│   │   └── models.cpython-314.pyc
+│   │
+│   ├── api/
+│   │   ├── _pycache_/
+│   │   │   └── imports.cpython-314.pyc
+│   │   │
+│   │   └──imports.py
+│   │
+│   ├── storage/
+│   │   ├── originals/
+│   │   │   └── (5 png upload trials)
+│   │   │
+│   │   └── db.sqlite
+│   │
+│   ├── check_recent.py
+│   ├── check_tables.py 
+│   ├── db.py
+│   ├── init_db.py
 │   ├── main.py
-│   ├── requirements.txt 
-│   └── utils
+│   ├── main.py.bak
+│   ├── models.py
+│   └── requirements.txt
 │
 ├── docs/  
 │   ├── DARKROOM_FEATURE_CHECKLIST.md          
@@ -29,6 +66,7 @@ darkroom-app/
 │   │   │
 │   │   └── electron/
 │   │       ├── main.js
+│   │       ├── main.js.bak
 │   │       └── preload.js
 │   │
 │   ├── node_modules
@@ -110,12 +148,17 @@ darkroom-app/
 │   │   │       └── file-utils.ts
 │   │   │ 
 │   │   ├── App.tsx
-│   │   ├── index.tsx 
+│   │   ├── index.css 
 │   │   └── main.tsx
 │   │
 │   ├── .env
+│   ├── index.html
 │   ├── package.json
+│   ├── package.json.bak
 │   ├── package-lock.json
+│   ├── probe.js
+│   ├── probe-electron.js
+│   ├── start-electron-dev.ps1
 │   ├── tailwind.config.js
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
