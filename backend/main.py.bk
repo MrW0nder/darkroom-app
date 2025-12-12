@@ -1,0 +1,25 @@
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import JSONResponse
+from PIL import Image
+import io
+
+app = FastAPI(title="Darkroom Backend (minimal)")
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+@app.post("/api/process-image")
+async def process_image(file: UploadFile = File(...)):
+    """
+    Accepts an uploaded image file and returns basic info (format, size).
+    Placeholder for actual processing pipelines.
+    """
+    try:
+        contents = await file.read()
+        img = Image.open(io.BytesIO(contents))
+        width, height = img.size
+        fmt = img.format
+        return JSONResponse({"filename": file.filename, "format": fmt, "width": width, "height": height})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
