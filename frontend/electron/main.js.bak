@@ -17,14 +17,7 @@ function hostForUrl(host) {
 
 const DEV_URLS = DEV_HOSTS.map(h => `http://${hostForUrl(h)}:${DEV_PORT}/`);
 
-// Detect dev mode
-const isDev = process.env.NODE_ENV === 'development'
-  || process.argv.includes('--dev')
-  || process.env.ELECTRON_DEV === '1';
-
-// Force Chromium to use a direct connection (bypass system proxy) for this process.
-// This helps if Chromium/Electron net stack is being routed through a system proxy.
-app.commandLine.appendSwitch('proxy-server', 'direct://');
+const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev') || process.env.ELECTRON_DEV === '1';
 
 // Try a single HTTP GET to the URL
 function checkDevUrl(url, timeout = 1000) {
@@ -86,25 +79,6 @@ async function createWindow() {
 
   if (isDev) {
     console.log('Running in dev mode; attempting to detect Vite dev server...');
-
-    // Allow forcing a dev URL via environment (convenient for the workaround)
-    const forcedDevUrl = process.env.DEV_SERVER_URL && process.env.DEV_SERVER_URL.trim();
-    const defaultDevUrl = `http://127.0.0.1:${DEV_PORT}/`;
-
-    if (forcedDevUrl) {
-      console.log(`DEV_SERVER_URL set, skipping probe and loading: ${forcedDevUrl}`);
-      try {
-        await win.loadURL(forcedDevUrl);
-        win.webContents.openDevTools();
-        console.log(`Loaded dev URL: ${forcedDevUrl}`);
-        win.once('ready-to-show', () => win.show());
-        return;
-      } catch (err) {
-        console.error('Failed to load forced DEV_SERVER_URL, falling back to probe:', err);
-      }
-    }
-
-    // Normal probe flow (tries 127.0.0.1, localhost, ::1)
     const devUrl = await findWorkingDevUrlWithRetry(5000, 300); // 5s total, 300ms interval
     if (devUrl) {
       try {
@@ -112,20 +86,11 @@ async function createWindow() {
         win.webContents.openDevTools();
         console.log(`Loaded dev URL: ${devUrl}`);
       } catch (err) {
-        console.error('Failed to load dev URL after detection, falling back to built index:', err);
+        console.error('Failed to load dev URL, falling back to built index:', err);
         loadBuiltIndex(win);
       }
     } else {
-      // Final fallback: try direct IPv4 dev URL once (useful workaround)
-      console.log(`Attempting final direct load to ${defaultDevUrl} as a last-ditch workaround`);
-      try {
-        await win.loadURL(defaultDevUrl);
-        win.webContents.openDevTools();
-        console.log(`Loaded dev URL (direct): ${defaultDevUrl}`);
-      } catch (err) {
-        console.error('Failed direct dev URL load, falling back to built index:', err);
-        loadBuiltIndex(win);
-      }
+      loadBuiltIndex(win);
     }
   } else {
     loadBuiltIndex(win);
