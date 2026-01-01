@@ -57,7 +57,7 @@ async def process_image(file: UploadFile = File(...)):
     Accepts an uploaded image file, validates it, processes it (resize, convert, watermark), and returns basic info.
     """
     MAX_FILE_SIZE_MB = 20  # Increased max file size to 20MB for ultra-high resolution photos
-    ALLOWED_EXTENSIONS = {"jpeg", "png", "jpg", "webp"}  # Allowed file formats/extensions
+    ALLOWED_EXTENSIONS = {"jpeg", "png", "jpg", "webp", "mpo"}  # Added 'mpo' support
     MAX_DIMENSION = 3840  # Maximum image dimension in pixels for ultra-high resolution images (4K)
 
     logger.info("Received file: %s", file.filename)
@@ -90,6 +90,11 @@ async def process_image(file: UploadFile = File(...)):
         if file_format == "jpg":  # Some tools report `jpg` instead of `jpeg`
             file_format = "jpeg"
 
+        if file_format == "mpo":  # Handle MPO (Multi-Picture Object)
+            logger.info("Converting 'mpo' file to 'jpeg'.")
+            img = img.convert("RGB")  # Convert first image in MPO to RGB format
+            file_format = "jpeg"
+
         if file_format not in ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=415,
@@ -112,9 +117,19 @@ async def process_image(file: UploadFile = File(...)):
         # Add a watermark to the image
         draw = ImageDraw.Draw(img)
         text = "Darkroom"
-        font_size = int(img.width / 30)  # Adjust font size for larger dimensions
-        font = ImageFont.load_default()  # Use default font (you can replace this with a TrueType font)
-        text_width, text_height = draw.textsize(text, font=font)
+
+        # Load a TrueType font (fallback to default if unavailable)
+        try:
+            font = ImageFont.truetype("arial.ttf", int(img.width / 30))  # Adjust font size
+        except Exception as e:
+            logger.warning("TrueType font not available. Falling back to default font.")
+            font = ImageFont.load_default()
+
+        # Measure text size using textbbox
+        text_bbox = draw.textbbox((0, 0), text, font=font)  # Bounding box for the text
+        text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
+
+        # Apply watermark
         draw.text(
             (img.width - text_width - 20, img.height - text_height - 20),
             text,
@@ -140,7 +155,7 @@ async def process_image(file: UploadFile = File(...)):
                 "message": "File processed successfully.",
                 "data": {
                     "filename": file.filename,
-                    "original_format": file.format.lower(),
+                    "original_format": file_format,  # Fixed reference to use the correct variable
                     "processed_format": "jpeg",
                     "original_size_MB": round(file_size_mb, 2),
                     "processed_size_MB": round(processed_file_size_mb, 2),
@@ -155,6 +170,7 @@ async def process_image(file: UploadFile = File(...)):
         raise e  # Pass through explicit exceptions
 
     except Exception as e:
+        # Handle unexpected server errors
         logger.exception("Unexpected server error during image processing")
         raise HTTPException(
             status_code=500,
