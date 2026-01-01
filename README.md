@@ -6,8 +6,8 @@ Advanced, AI-powered, local-only desktop photo editor — a modern Adobe Lightro
 
 ## 🚫 Important
 
-- Local-only application: No cloud features, internet connectivity, or external API calls by default.
-- All workflow, processing, and file saving happens on your device only.
+- **Local-only application**: No cloud features, internet connectivity, or external API calls by default.
+- All workflow, processing, and file saving happen on your device only.
 
 ---
 
@@ -36,11 +36,10 @@ Advanced, AI-powered, local-only desktop photo editor — a modern Adobe Lightro
 
 ```
 darkroom-app/
-├── backend/      # Python FastAPI API, AI pipeline, queue, storage and DB
+├── backend/      # Python FastAPI API, Alembic migrations, queue, storage and DB
 ├── frontend/     # React/TypeScript app, Electron shell (desktop)
 ├── docs/         # Planning docs, wireframes, feature checklist
-├── .gitignore
-├── LICENSE
+├── .env.example  # Example environment configuration
 └── README.md
 ```
 
@@ -50,155 +49,100 @@ Key docs:
 
 ---
 
-## What I did (status update — verified 2025-12-12)
+## Individual Updates and Status
 
-During a live troubleshooting session we performed and verified the following on a Windows dev machine using PowerShell:
+### Core Flow Verification
+- The upload and database persistence flow has been verified. Files are saved locally, with records written to the SQLite database.
+- The app routes were tested with FastAPI’s interactive docs under development.
 
-- Created/activated a local virtual environment at `.venv` and confirmed Python is using it.
-- Installed backend dependencies from `backend/requirements.txt` into `.venv`.
-- Ensured SQLAlchemy was installed into the active venv.
-- Fixed `backend/init_db.py` import behavior by running it as a module and created the database tables:
-  - Command used: `python -m backend.init_db`
-  - Result: "Database tables created successfully."
-- Confirmed the SQLite DB file exists at `backend/storage/db.sqlite` and that the `images` table exists with expected columns:
-  - id, filename, filepath, width, height, format, metadata, created_at
-- Started the FastAPI app with Uvicorn:
-  - Command used: `python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000`
-  - Verified /docs and OpenAPI operated and `POST /api/import` returned 200 OK.
-- Performed an upload via the interactive docs; verified that:
-  - The uploaded file is saved under `backend/storage/originals/<hashed_filename>.<ext>`
-  - A matching DB row was inserted into the `images` table (filename set to the original filename, `filepath` stores saved location)
-- Created two temporary helper scripts during troubleshooting:
-  - `backend/check_tables.py` — quick table inspection
-  - `backend/check_recent.py` — shows newest file in originals & matching DB rows
+### Latest Updates
+1. **Environment Configuration**
+   - Key environment variables moved to `.env`:
+     - `DARKROOM_DATABASE_URL`: Database connection string.
+     - `DARKROOM_STORAGE_PATH`: Local storage for uploads.
+     - `DARKROOM_LOG_LEVEL`: Log verbosity (default: `INFO`).
 
-These steps confirm the core upload + persistence flow is working on your dev machine.
+2. **Database Migrations**
+   - Set up Alembic for managing database migrations:
+     - Initial migration: `images` table added.
 
 ---
 
-## Quickstart (developer, Windows PowerShell)
+## Quickstart (Developer, Windows PowerShell)
 
-These exact steps were used and are known to work for local development.
+These exact steps are known to work for local development:
 
-1. Clone
+### 1. Clone and Navigate
 ```powershell
 git clone https://github.com/<your-username>/darkroom-app.git
 cd darkroom-app
 ```
 
-2. Create/activate venv (if you already have `.venv`):
+### 2. Create and Activate Virtual Environment
 ```powershell
-# create if needed:
+# Create (if not already there):
 python -m venv .venv
 
-# activate:
+# Activate:
 .\.venv\Scripts\Activate.ps1
 ```
 
-3. Confirm Python is the venv interpreter:
+### 3. Install Dependencies
 ```powershell
-python -c "import sys; print('PYTHON:', sys.executable); print('VERSION:', sys.version)"
+pip install --upgrade pip
+pip install -r backend/requirements.txt
 ```
 
-4. Install backend dependencies:
+### 4. Set Environment Variables
+- Create a `.env` file in the project root (use `.env.example` as a template).
+- Modify to customize `DARKROOM_DATABASE_URL`, `DARKROOM_STORAGE_PATH`, etc.
+
+### 5. Initialize Database
 ```powershell
-python -m pip install --upgrade pip
-python -m pip install -r backend/requirements.txt
-python -m pip install SQLAlchemy
+alembic upgrade head
 ```
 
-5. Initialize DB (run as module so imports resolve):
-```powershell
-python -m backend.init_db
-# Expected output: "Database tables created successfully."
-```
-
-6. Run the dev server:
+### 6. Start Dev Server
 ```powershell
 python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-7. Test uploads:
-- Open http://127.0.0.1:8000/docs and use the import endpoint (POST `/api/import`) via the interactive UI.
-- Files are saved to `backend/storage/originals/`.
-- DB rows are written to `backend/storage/db.sqlite` → table `images`.
-
-8. Helpful checks (used during debugging)
-```powershell
-# List files saved by uploads
-Get-ChildItem -Path .\backend\storage\originals -File | Sort-Object LastWriteTime -Descending | Select-Object Name,LastWriteTime,Length | Format-Table
-
-# Quick DB checks (helper script)
-python backend/check_recent.py
-```
-
-9. Stop server: press Ctrl+C in the uvicorn terminal  
-Deactivate venv:
-```powershell
-deactivate
-```
+### 7. Open and Test
+- API Docs: <http://127.0.0.1:8000/docs>
+- Test file uploads at `POST /api/import` via the interactive UI. Uploaded files are saved in `/backend/storage/originals/`.
 
 ---
 
-## Files created during troubleshooting
-- `backend/check_tables.py`
-- `backend/check_recent.py`
+## Notes About Common Issues
 
-Remove them if you want a clean repo:
-```powershell
-Remove-Item backend/check_tables.py
-Remove-Item backend/check_recent.py
-```
+- `ModuleNotFoundError`:
+  Ensure you’re running from the project root (`darkroom-app`) and the virtual environment is active.
 
----
+- SQLite Locking:
+  SQLite is used for local development but may need replacement for concurrent production workloads.
 
-## Notes about common issues & fixes
-
-- "No module named 'backend'" when running a script:
-  - Run the script as a module from the project root, e.g. `python -m backend.init_db`, or add the project root to `sys.path` at the top of the script.
-- If a package is missing (e.g., SQLAlchemy), ensure `.venv` is activated and install into that interpreter:
-  - `python -m pip install SQLAlchemy`
-- Swagger/OpenAPI docs list possible responses (201, 422, etc.) — the implemented endpoint returned 200 in our session. We should harmonize the documented and returned status codes.
+- Logs:
+  Logs (to console) include the effective database URL and storage path at startup.
 
 ---
 
-## Remaining tasks / short-term roadmap
+## Remaining Short-Term Tasks
 
-1. API behavior & docs
-   - Decide canonical status codes (e.g., return 201 Created on successful import).
-   - Ensure OpenAPI schema matches actual responses.
+### 1. API Enhancements
+- Adjust response status codes (e.g., `201 Created` on file import).
+- Ensure OpenAPI documentation matches the actual responses.
 
-2. DB & storage conventions
-   - Current behavior: `filename` stores original filename; `filepath` stores full saved path (hashed filename).
-   - Decide whether to store the hashed filename in `filename` or keep original; implement and migrate if required.
+### 2. Hardening
+- Add stricter file validations (size, format).
+- Add concurrency considerations for batch imports.
 
-3. Cleanup & tests
-   - Remove temporary helper scripts after verification.
-   - Add unit and integration tests for the upload flow (file saved + DB row inserted).
-   - Add schema migrations (Alembic) if the DB schema will evolve.
+### 3. Production Readiness
+- Add Dockerfile.
+- Implement S3-compatible cloud storage.
 
-4. Hardening & validations
-   - File size limits, allowed formats, robust metadata extraction and error handling.
-   - Concurrency & file-locking considerations for queue/batch imports.
-
-5. Production readiness
-   - Add Dockerfile and production Uvicorn/Gunicorn configuration.
-   - Support for configurable storage backends (local path or S3-compatible).
-   - CI/CD: run tests, lint, and build artifacts on push.
-
-6. Feature roadmap (longer-term)
-   - Background worker for heavy tasks (Celery/RQ)
-   - Full AI pipeline integration (local models, optimized inference)
-   - User accounts, per-user storage, collection management
-   - UI/UX polish, keyboard customizations, preset marketplace
+### 4. Test Suite
+- Unit and integration tests for upload and database interaction.
 
 ---
 
-## If you want me to update the README in the repo
-I can create the updated README as a commit/PR for you. Tell me which you prefer:
-- "Commit and push to main" — I will give the exact git commands you can run locally, or I can prepare a PR (I will need permission to create a branch/PR via the GitHub API).
-- "Only provide file contents" — copy/paste this file over your existing README.md (you already pushed other changes earlier).
-
----
-
-If you'd like any of the remaining tasks prioritized and turned into concrete issues or PRs, tell me one small task and I'll create the exact code change or issue text for you.
+Darkroom is under active development. Contributions and feedback are welcome!
