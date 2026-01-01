@@ -1,8 +1,7 @@
-# backend/main.py
 import os
 import io
 import logging
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -53,22 +52,66 @@ def health():
     return JSONResponse({"status": "ok"}, status_code=200)
 
 
-# Compatibility: keep the minimal process-image endpoint for quick testing
 @app.post("/api/process-image")
 async def process_image(file: UploadFile = File(...)):
     """
-    Accepts an uploaded image file and returns basic info (format, size).
-    Kept for compatibility with the original minimal server.
+    Accepts an uploaded image file, validates it, and returns basic info (format, size).
     """
+    MAX_FILE_SIZE_MB = 5  # Maximum file size allowed (5 MB)
+    ALLOWED_EXTENSIONS = {"jpeg", "png", "jpg"}  # Allowed file formats/extensions
+
     try:
-        contents = await file.read()
-        img = PILImage.open(io.BytesIO(contents))
+        # Enforce file size limit
+        contents = await file.read()  # Read file content
+        file_size_mb = len(contents) / (1024 * 1024)  # Convert size to MB
+        if file_size_mb > MAX_FILE_SIZE_MB:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File size exceeds {MAX_FILE_SIZE_MB}MB limit."
+            )
+
+        # Enforce file format validation
+        try:
+            img = PILImage.open(io.BytesIO(contents))  # Open the image
+        except Exception as e:
+            raise HTTPException(
+                status_code=422,
+                detail="Uploaded file is not a valid image or is corrupted."
+            )
+
+        file_format = img.format.lower()
+        if file_format not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=415,
+                detail=f"Invalid file format '{file_format}'. Allowed: {', '.join(ALLOWED_EXTENSIONS)}."
+            )
+
+        # Return file metadata response
         width, height = img.size
-        fmt = img.format
-        return JSONResponse({"filename": file.filename, "format": fmt, "width": width, "height": height})
+        return JSONResponse(
+            {
+                "status": "success",
+                "message": "File processed successfully.",
+                "data": {
+                    "filename": file.filename,
+                    "format": file_format,
+                    "size_MB": round(file_size_mb, 2),
+                    "dimensions": {"width": width, "height": height},
+                },
+            },
+            status_code=201  # Return "Created" status
+        )
+
+    except HTTPException as e:
+        raise e  # Pass through explicit exceptions
+
     except Exception as e:
-        logger.exception("Error processing image")
-        return JSONResponse({"error": str(e)}, status_code=400)
+        # Handle unexpected errors
+        logger.exception("Unexpected server error during image processing")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Server error during file processing: {str(e)}"
+        )
 
 
 # Include API routers (imports router provides /api/import and /api/images endpoints)
