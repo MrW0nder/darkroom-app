@@ -56,9 +56,9 @@ async def process_image(file: UploadFile = File(...)):
     """
     Accepts an uploaded image file, validates it, processes it (resize, convert, watermark), and returns basic info.
     """
-    MAX_FILE_SIZE_MB = 5  # Maximum file size allowed (5 MB)
+    MAX_FILE_SIZE_MB = 20  # Increased max file size to 20MB for ultra-high resolution photos
     ALLOWED_EXTENSIONS = {"jpeg", "png", "jpg", "webp"}  # Allowed file formats/extensions
-    MAX_DIMENSION = 800  # Maximum image dimension in pixels (width/height)
+    MAX_DIMENSION = 3840  # Maximum image dimension in pixels for ultra-high resolution images (4K)
 
     logger.info("Received file: %s", file.filename)
 
@@ -112,11 +112,11 @@ async def process_image(file: UploadFile = File(...)):
         # Add a watermark to the image
         draw = ImageDraw.Draw(img)
         text = "Darkroom"
-        font_size = int(img.width / 20)
+        font_size = int(img.width / 30)  # Adjust font size for larger dimensions
         font = ImageFont.load_default()  # Use default font (you can replace this with a TrueType font)
         text_width, text_height = draw.textsize(text, font=font)
         draw.text(
-            (img.width - text_width - 10, img.height - text_height - 10),
+            (img.width - text_width - 20, img.height - text_height - 20),
             text,
             fill=(255, 255, 255, 128),  # White with some transparency
             font=font,
@@ -125,7 +125,7 @@ async def process_image(file: UploadFile = File(...)):
 
         # Save image to in-memory file
         output_buffer = io.BytesIO()
-        img.save(output_buffer, format="JPEG")
+        img.save(output_buffer, format="JPEG", quality=95)  # Save with maximum quality
         output_buffer.seek(0)
 
         # Calculate the new file size
