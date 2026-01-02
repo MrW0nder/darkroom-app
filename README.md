@@ -1,6 +1,6 @@
 # Darkroom
 
-Advanced, AI-powered, local-only desktop photo editor — a modern Adobe Lightroom Pro clone with offline privacy, full RAW support, and advanced image batch and queue workflows.
+Advanced, AI-powered, local-only desktop photo editor — a modern Adobe Photoshop Pro clone with offline privacy, full RAW support, and advanced image batch and queue workflows.
 
 ---
 
@@ -11,28 +11,67 @@ Advanced, AI-powered, local-only desktop photo editor — a modern Adobe Lightro
 
 ---
 
-## ✨ Major Features (Goals)
+## ✨ Major Features and Goals
 
-- True layer-based image editing: brush, text, cropping, shapes, masks, history
-- Non-destructive edits with advanced undo/redo
-- Arbitrary-angle cropping and zoom during crop
-- Customizable adjustment groups/panels (add, remove, reorder, drag/drop)
-- Keyboard shortcuts for core workflows
-- Watermarking and preset management
-- Powerful batch import/export with queue management
-- RAW format compatibility and hybrid pipelines (RAW, JPEG, TIFF, etc.)
+Our ultimate goal is to develop **Darkroom** into a **powerful, offline-first image editor resembling Adobe Photoshop Pro**, with advanced editing capabilities and AI-powered enhancements for professionals. Here's the primary focus:
 
-### AI-enhanced Editing (Planned)
-- Object detection and easy selection/grouping
-- One‑click object removal (AI inpainting)
-- Context-aware object replacement (several generated options)
-- Background-only or subject-only editing modes
-- Super-resolution / upscaling (multiple target sizes)
-- Face detection, auto-colorization, savable AI presets
+### Photoshop-Like Editing Features (Core Goals)
+
+1. **Layer-Based Editing**:
+   - Support multiple editable layers (e.g., images, text, shapes).
+   - Operations:
+     - Add, reorder, hide, lock, and merge layers.
+     - Adjust opacity, blending modes, and positions.
+   - Editable mask layers for non-destructive workflows.
+
+2. **History/Undo-Redo**:
+   - Fully interactive history stack for all actions.
+   - Support for non-destructive edits (e.g., applying masks, adjustment layers).
+
+3. **Precision Editing Tools**:
+   - Arbitrary-angle cropping and zoom during cropping.
+   - Freehand brushes with variable size and opacity.
+   - Shape and text overlays with customizable settings.
+
+4. **Customizable Workspace**:
+   - Layer management panel.
+   - Toolbars for selecting colors, cropping, brushes, shapes, text, etc.
+   - Drag-and-drop adjustment panel to reorder image tools.
+
+5. **Batch Workflows**:
+   - Import/export powerful batches of images with queues.
+   - Hybrid pipelines (process RAW, JPEG, TIFF files together).
+
+---
+
+### AI-Enhanced Editing (Planned)
+
+1. **Object Selection and Removal**:
+   - Auto-detect subjects and background for easy selection/grouping.
+   - One-click object removal (AI-based inpainting).
+   - Context-aware editing, such as background-only or subject-only changes.
+
+2. **Super-Resolution and Upscaling**:
+   - AI-assisted photo upscaling to target resolutions (e.g., 4K, 8K).
+
+3. **Face Detection and Manipulation**:
+   - Auto-enhance features such as colorization.
+   - Support for AI-savable presets (e.g., automated corrections).
+
+---
+
+### 🚀 Additional Goals
+
+- **Pluggable Processing Pipelines**: Extend the app for custom AI models, filters, and tools.
+- **Keyboard Shortcuts**: Enhance workflows with hotkeys, like Photoshop.
+- **Version Control for Edits**: Grid-like history visualization.
+- **Super-Smooth User Experience**: Keep everything fast and responsive.
 
 ---
 
 ## Project Structure
+
+The structure of the Darkroom repository is as follows:
 
 ```
 darkroom-app/
@@ -43,9 +82,9 @@ darkroom-app/
 └── README.md
 ```
 
-Key docs:
-- `docs/DARKROOM_FEATURE_CHECKLIST.md` — progress tracking and feature matrix
-- `docs/wireframes/` — UI sketches and workflow diagrams
+Key documentation:
+- `docs/DARKROOM_FEATURE_CHECKLIST.md` — Progress tracking and feature matrix.
+- `docs/wireframes/` — UI sketches and workflow diagrams.
 
 ---
 
@@ -104,45 +143,21 @@ alembic upgrade head
 
 ### 6. Start Dev Server
 ```powershell
-python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn backend.main:app --reload
 ```
 
-### 7. Open and Test
-- API Docs: <http://127.0.0.1:8000/docs>
-- Test file uploads at `POST /api/import` via the interactive UI. Uploaded files are saved in `/backend/storage/originals/`.
+---
+
+This README file now reflects the updated vision and roadmap for transforming Darkroom into a **local, advanced, privacy-friendly Adobe Photoshop Pro clone**. Everything we discussed (layer-based editing, advanced tools, AI enhancements) is documented here to keep the vision clear.
 
 ---
 
-## Notes About Common Issues
-
-- `ModuleNotFoundError`:
-  Ensure you’re running from the project root (`darkroom-app`) and the virtual environment is active.
-
-- SQLite Locking:
-  SQLite is used for local development but may need replacement for concurrent production workloads.
-
-- Logs:
-  Logs (to console) include the effective database URL and storage path at startup.
-
----
-
-## Remaining Short-Term Tasks
-
-### 1. API Enhancements
-- Adjust response status codes (e.g., `201 Created` on file import).
-- Ensure OpenAPI documentation matches the actual responses.
-
-### 2. Hardening
-- Add stricter file validations (size, format).
-- Add concurrency considerations for batch imports.
-
-### 3. Production Readiness
-- Add Dockerfile.
-- Implement S3-compatible cloud storage.
-
-### 4. Test Suite
-- Unit and integration tests for upload and database interaction.
-
----
-
-Darkroom is under active development. Contributions and feedback are welcome!
+### Next Steps
+1. Replace your existing `README.md` file with this content.
+2. Commit the changes and push them to the `main` branch:
+   ```bash
+   git add README.md
+   git commit -m "Updated README to reflect Adobe Photoshop Pro vision and goals"
+   git push origin main
+   ```
+3. Let me know when you're ready for the next step! 🚀
