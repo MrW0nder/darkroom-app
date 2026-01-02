@@ -16,10 +16,9 @@ print("Python Search Path:", sys.path)
 from backend.database import get_db, engine, DATABASE_URL  # Updated to use the new database.py
 from backend.models import Base  # Ensure models are imported for table creation
 from backend.models.layers import Layer  # Updated Layer import
-from backend.api.imports import router as imports_router
+from backend.api.imports import router as imports_router  # Import the imports router
 
 APP_TITLE = "Darkroom Backend"
-FRONTEND_ORIGIN = os.environ.get("DARKROOM_FRONTEND_ORIGIN", "http://localhost:5173")
 
 # Configure basic logging
 LOG_LEVEL = os.environ.get("DARKROOM_LOG_LEVEL", "INFO").upper()
@@ -28,13 +27,16 @@ logger = logging.getLogger("darkroom")
 
 app = FastAPI(title=APP_TITLE)
 
-# Configure CORS to allow only the frontend origin
+# Include the imports router for file upload functionality
+app.include_router(imports_router)
+
+# FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN],
+    allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],  # Allow React frontend origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
 )
 
 
