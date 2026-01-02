@@ -20,8 +20,9 @@ except Exception:
 # Import Base from your models
 try:
     from backend.models import Base  # type: ignore
+    from backend.models.layers import Layer  # Ensure the Layer model is included (NEW)
 except Exception as e:
-    print("ERROR: failed importing Base from backend.models:", e)
+    print("ERROR: failed importing Base from backend.models or Layer model:", e)
     sys.exit(1)
 
 # If we couldn't get an engine from the project, create a fallback SQLite file in backend/storage
@@ -35,6 +36,7 @@ if engine is None:
 
 # Create all tables
 try:
+    # This will create all tables defined in your SQLAlchemy models
     Base.metadata.create_all(engine)
     print("Database tables created successfully.")
 except SQLAlchemyError as e:
