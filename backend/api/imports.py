@@ -1,4 +1,3 @@
-# backend/api/imports.py
 from pathlib import Path
 import uuid
 import shutil
@@ -10,7 +9,7 @@ from PIL import Image as PILImage, UnidentifiedImageError
 from sqlalchemy.orm import Session
 
 from backend.db import STORAGE_DIR, get_db
-from backend.models import Image as ImageModel
+from backend.models.models import Image as ImageModel  # Updated import
 
 router = APIRouter(prefix="/api", tags=["imports"])
 
