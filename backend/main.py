@@ -1,5 +1,6 @@
 import os
 import io
+import sys
 import logging
 from typing import Optional
 from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Depends
@@ -9,9 +10,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from PIL import Image as PILImage, ImageDraw, ImageFont
 
-from backend.db import init_db, get_db, STORAGE_DIR, DATABASE_URL  # Updated: Add `get_db`
+# Debugging code: Print the Python search path
+print("Python Search Path:", sys.path)
+
+from backend.database import get_db, engine, DATABASE_URL  # Updated to use the new database.py
+from backend.models import Base  # Ensure models are imported for table creation
+from backend.models.layers import Layer  # Updated Layer import
 from backend.api.imports import router as imports_router
-from backend.models.layers import Layer  # Import the Layer model
 
 APP_TITLE = "Darkroom Backend"
 FRONTEND_ORIGIN = os.environ.get("DARKROOM_FRONTEND_ORIGIN", "http://localhost:5173")
@@ -38,13 +43,14 @@ def on_startup():
     """
     Initialize DB/tables and log configuration.
     """
-    init_db()
     try:
-        # Log storage path and DB URL
-        logger.info("Storage directory: %s", STORAGE_DIR)
+        # Dynamically create all missing database tables
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables initialized.")
+        logger.info("Storage directory: %s", engine.url.database)
         logger.info("Database URL: %s", DATABASE_URL)
     except Exception:
-        logger.exception("Unable to read storage/db configuration on startup")
+        logger.exception("Unable to initialize the database on startup.")
 
 
 @app.get("/health", tags=["health"])
@@ -59,7 +65,7 @@ class LayerCreate(BaseModel):
     content: str = None
     z_index: int = None
     locked: bool = False
-    opacity: int = 100
+    opacity = int(100)
     visible: bool = True
     x: float = 0.0
     y: float = 0.0
@@ -126,8 +132,8 @@ async def process_image(
     apply_watermark: Optional[bool] = Query(True, description="Whether to apply a watermark or not."),
     watermark_size: Optional[int] = Query(None, description="Custom watermark size (font).")
 ):
-    # The original `process-image` implementation
-    return {"message": "Image processing not modified here for brevity."}
+    # Example: process image (implementation omitted for brevity)
+    return {"message": "Image processing not modified here."}
 
 
 # Include the imports router (images and import-related API endpoints)

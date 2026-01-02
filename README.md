@@ -149,15 +149,3 @@ uvicorn backend.main:app --reload
 ---
 
 This README file now reflects the updated vision and roadmap for transforming Darkroom into a **local, advanced, privacy-friendly Adobe Photoshop Pro clone**. Everything we discussed (layer-based editing, advanced tools, AI enhancements) is documented here to keep the vision clear.
-
----
-
-### Next Steps
-1. Replace your existing `README.md` file with this content.
-2. Commit the changes and push them to the `main` branch:
-   ```bash
-   git add README.md
-   git commit -m "Updated README to reflect Adobe Photoshop Pro vision and goals"
-   git push origin main
-   ```
-3. Let me know when you're ready for the next step! 🚀
