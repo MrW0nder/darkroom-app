@@ -1,4 +1,3 @@
-# backend/db.py
 """
 Database and storage configuration.
 
@@ -88,11 +87,3 @@ def init_db():
     Create DB file and tables (must import models so Base.metadata has tables).
     Call this at startup after importing your models module(s).
     """
-    # Import models here to ensure they are registered on Base before create_all
-    try:
-        import backend.models  # noqa: F401
-    except Exception:
-        # If models don't exist yet, that's fine; caller should re-run init_db after adding models
-        pass
-
-    Base.metadata.create_all(bind=engine)

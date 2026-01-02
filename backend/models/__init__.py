@@ -1,2 +1,2 @@
-from backend.database import Base  # Import the Base for table creation
-from backend.models.layers import Layer  # Expose the Layer model
+from backend.database import Base  # Import Base from the new database.py file
+from .layers import Layer  # Expose the Layer model

@@ -1,6 +1,9 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text
 from datetime import datetime
-from backend.database import Base  # Use Base imported from backend/database.py
+from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+
 
 class Image(Base):
     __tablename__ = "images"
@@ -8,10 +11,13 @@ class Image(Base):
     id = Column(Integer, primary_key=True)
     filename = Column(String, nullable=False)
     filepath = Column(String, nullable=False)
-    width = Column(Integer, nullable=True)
-    height = Column(Integer, nullable=True)
-    format = Column(String(50), nullable=True)
-    metadata_json = Column("metadata", Text, nullable=True)
+    width = Column(Integer)
+    height = Column(Integer)
+    format = Column(String(50))
+
+    # Avoid using the attribute name `metadata` (it's reserved by SQLAlchemy's declarative Base).
+    # Store the DB column as "metadata" but expose it on the model as `metadata_json`.
+    metadata_json = Column("metadata", Text)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 

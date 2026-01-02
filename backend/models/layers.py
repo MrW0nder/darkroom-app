@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from backend.database import Base  # Import Base from the new database.py setup
+from backend.models.projects import Project  # Make sure Project is imported here
 
 class Layer(Base):
     __tablename__ = "layers"
@@ -29,7 +30,7 @@ class Layer(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationship with the "Project", assuming a Project table exists
+    # Relationship with the "Project", ensuring proper joins
     project = relationship(
         "Project", back_populates="layers", lazy="joined"
-    )  # Ensure efficient joins with lazy="joined"
+    )
