@@ -13,7 +13,7 @@ from PIL import Image as PILImage, ImageDraw, ImageFont
 # Debugging code: Print the Python search path
 print("Python Search Path:", sys.path)
 
-from backend.database import get_db, engine, DATABASE_URL  # Updated to use the new database.py
+from backend.db import get_db, engine, DATABASE_URL  # Import from db.py
 from backend.models import Base  # Ensure models are imported for table creation
 from backend.models.layers import Layer  # Updated Layer import
 from backend.api.imports import router as imports_router  # Import the imports router

@@ -1,8 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Text
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
+from backend.db import Base  # Import Base from db.py
 
 
 class Image(Base):

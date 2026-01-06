@@ -3,26 +3,22 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 
-# Try importing a project-provided engine (common names)
-engine = None
+# Import engine from backend.db
 try:
-    # common location: backend.database
-    from backend.database import engine as project_engine  # type: ignore
+    from backend.db import engine as project_engine  # type: ignore
     engine = project_engine
-except Exception:
-    try:
-        # another common location: backend.db
-        from backend.db import engine as project_engine  # type: ignore
-        engine = project_engine
-    except Exception:
-        engine = None
+except Exception as e:
+    print("ERROR: failed importing engine from backend.db:", e)
+    engine = None
 
-# Import Base from your models
+# Import Base and models
 try:
     from backend.models import Base  # type: ignore
-    from backend.models.layers import Layer  # Ensure the Layer model is included (NEW)
+    from backend.models.layers import Layer  # Ensure the Layer model is included
+    from backend.models.projects import Project
+    from backend.models.models import Image
 except Exception as e:
-    print("ERROR: failed importing Base from backend.models or Layer model:", e)
+    print("ERROR: failed importing Base or models:", e)
     sys.exit(1)
 
 # If we couldn't get an engine from the project, create a fallback SQLite file in backend/storage
