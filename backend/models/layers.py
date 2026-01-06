@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Text, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from backend.db import Base  # Import Base from the new database.py setup
+from backend.db import Base  # Import Base from db.py
 from backend.models.projects import Project  # Make sure Project is imported here
 
 class Layer(Base):
