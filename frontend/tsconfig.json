@@ -7,7 +7,7 @@
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "Node",              // <--- FIXED; use "Node" for compatibility!
+    "moduleResolution": "Node",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -19,8 +19,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    // --- ADD THIS LINE (CRUCIAL FOR REACT) ---
-    "jsx": "react-jsx"
+    /* React-specific settings */
+    "jsx": "react-jsx",                     // Ensures compatibility with React 17+ (new JSX transform)
+    "allowSyntheticDefaultImports": true,  // Allows default imports for "export =" modules
+    "esModuleInterop": true                // Enables compatibility with CommonJS modules (e.g., ReactDOM)
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

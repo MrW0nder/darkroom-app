@@ -6,14 +6,14 @@ from typing import Optional, List
 from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 from PIL import Image as PILImage, ImageDraw, ImageFont
 
 # Debugging code: Print the Python search path
 print("Python Search Path:", sys.path)
 
-from backend.database import get_db, engine, DATABASE_URL  # Updated to use the new database.py
+from backend.db import get_db, engine, DATABASE_URL  # Updated to use the new db.py
 from backend.models import Base  # Ensure models are imported for table creation
 from backend.models.layers import Layer  # Updated Layer import
 from backend.api.imports import router as imports_router  # Import the imports router
@@ -25,7 +25,24 @@ LOG_LEVEL = os.environ.get("DARKROOM_LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("darkroom")
 
-app = FastAPI(title=APP_TITLE)
+# Replace on_event with lifespan to fix deprecation warning
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        # Dynamically create all missing database tables
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables initialized.")
+        logger.info("Storage directory: %s", engine.url.database)
+        logger.info("Database URL: %s", DATABASE_URL)
+        yield
+    except Exception as e:
+        logger.exception("Unable to initialize the database on startup: %s", e)
+        yield
+
+
+app = FastAPI(title=APP_TITLE, lifespan=lifespan)
 
 # Include the imports router for file upload functionality
 app.include_router(imports_router)
@@ -38,21 +55,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
 )
-
-
-@app.on_event("startup")
-def on_startup():
-    """
-    Initialize DB/tables and log configuration.
-    """
-    try:
-        # Dynamically create all missing database tables
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables initialized.")
-        logger.info("Storage directory: %s", engine.url.database)
-        logger.info("Database URL: %s", DATABASE_URL)
-    except Exception as e:
-        logger.exception("Unable to initialize the database on startup: %s", e)
 
 
 @app.get("/health", tags=["health"])
@@ -94,8 +96,7 @@ class LayerResponse(BaseModel):
     height: Optional[float]
     blend_mode: Optional[str]
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)  # Updated for Pydantic V2 compliance
 
 
 @app.post("/api/layers", response_model=dict)

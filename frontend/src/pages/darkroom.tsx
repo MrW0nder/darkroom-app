@@ -1,55 +1,93 @@
 "use client";
 
 import * as React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Slider } from "../components/ui/slider";
-import { Download, Upload } from "lucide-react";
-import Canvas from "../components/ui/canvas"; // Import your Canvas component
+import { Upload } from "lucide-react";
+import Canvas from "../components/ui/canvas";
 
 const DarkroomApp: React.FC = () => {
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null); // State for image preview
+  const [layers, setLayers] = useState<any[]>([]); // State for layers fetched from the backend
   const [brightness, setBrightness] = useState<number>(100);
   const [contrast, setContrast] = useState<number>(100);
   const [saturation, setSaturation] = useState<number>(100);
   const [hue, setHue] = useState<number>(0);
   const [vibrance, setVibrance] = useState<number>(0);
   const [sharpness, setSharpness] = useState<number>(100);
-  const [fileName, setFileName] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>(""); // State for error messages
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Receive canvas reference from Canvas component (advanced effects/saving)
-  const handleCanvasReady = (canvas: HTMLCanvasElement) => {
-    // You can store or trigger effects here if needed!
-    // For now, no-op.
+  // Fetch layers from the backend
+  const fetchLayers = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/layers"); // Replace URL with your layer API endpoint
+      if (!response.ok) {
+        throw new Error("Failed to fetch layers.");
+      }
+      const data = await response.json();
+      console.log("Fetched Layers:", data);
+      setLayers(data); // Update layers in state
+    } catch (error) {
+      console.error("Error fetching layers:", error);
+      setErrorMessage("Failed to fetch layers. Please try again later.");
+    }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch layers on initial mount
+  useEffect(() => {
+    fetchLayers();
+  }, []);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setErrorMessage(""); // Reset any previous error messages
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
     if (!file.type.match("image.*")) {
-      alert("Please upload an image file");
+      setErrorMessage("Please upload a valid image file (JPG, PNG, WEBP).");
       return;
     }
 
+    // Validate file size
     if (file.size > 5 * 1024 * 1024) {
-      alert("File size exceeds 5MB limit");
+      setErrorMessage("File size exceeds the 5MB limit. Please upload a smaller image.");
       return;
     }
 
-    setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setImage(event.target.result as string);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      // Upload the image to the backend
+      const response = await fetch("http://127.0.0.1:8000/api/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image.");
       }
-    };
-    reader.readAsDataURL(file);
+
+      const uploadedImage = await response.json();
+      setImage(uploadedImage.filepath); // Set the image preview using the uploaded filepath
+      console.log("Image uploaded successfully:", uploadedImage);
+
+      // Re-fetch layers to reflect updates dynamically
+      await fetchLayers(); // <-- Ensure layers are fetched after upload
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setErrorMessage("Failed to upload image. Please try again.");
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""; // Reset file input
+      }
+    }
   };
 
   const resetFilters = () => {
@@ -66,7 +104,7 @@ const DarkroomApp: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         <header className="text-center py-8">
           <h1 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-            Darkroom
+            Darkroom - Layer Manager
           </h1>
           <p className="mt-2 text-gray-400">Edit your images with ease</p>
         </header>
@@ -81,7 +119,7 @@ const DarkroomApp: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div 
+              <div
                 className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-purple-500 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -100,36 +138,35 @@ const DarkroomApp: React.FC = () => {
                   onChange={handleFileChange}
                 />
               </div>
-              {image && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-medium">Preview</h3>
-                    <Button onClick={resetFilters}>
-                      Reset Filters
-                    </Button>
-                  </div>
-                  <div className="relative aspect-square bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-                    <img
-                      src={image}
-                      alt="Preview"
-                      className="w-full h-full object-contain"
-                      style={{
-                        filter: `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%) hue-rotate(${hue}deg)`
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
+              {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
             </CardContent>
           </Card>
 
-          {/* Canvas + Editing Tools */}
+          {/* Layers List */}
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
-              <CardTitle>Edit Image (Canvas)</CardTitle>
+              <CardTitle>Layers List</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-8">
-              {/* Real Canvas - Replace this in future with advanced editor */}
+            <CardContent>
+              {layers.length === 0 && <p>No layers found. Upload an image to get started.</p>}
+              {layers.map((layer) => (
+                <div key={layer.id} className="space-y-2">
+                  <p className="text-gray-400">image: {layer.filepath}</p>
+                  <Button variant="secondary">Layer Preview</Button>
+                  <Button variant="secondary" color="red">
+                    Delete
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Image Preview and Filters */}
+        {image && (
+          <div className="mt-8">
+            <h2 className="text-lg font-bold mb-4">Image Preview</h2>
+            <div className="space-y-6">
               <Canvas
                 imageUrl={image}
                 brightness={brightness}
@@ -140,112 +177,32 @@ const DarkroomApp: React.FC = () => {
                 sharpness={sharpness}
                 onCanvasReady={handleCanvasReady}
               />
-              <div className="space-y-6 mt-6">
-                <div>
+              {[ // Render sliders dynamically
+                { id: "brightness", value: brightness, min: 0, max: 200, setter: setBrightness, label: "Brightness" },
+                { id: "contrast", value: contrast, min: 0, max: 200, setter: setContrast, label: "Contrast" },
+                { id: "saturation", value: saturation, min: 0, max: 200, setter: setSaturation, label: "Saturation" },
+                { id: "hue", value: hue, min: -180, max: 180, setter: setHue, label: "Hue" },
+                { id: "vibrance", value: vibrance, min: -100, max: 100, setter: setVibrance, label: "Vibrance" },
+                { id: "sharpness", value: sharpness, min: 0, max: 200, setter: setSharpness, label: "Sharpness" },
+              ].map((slider) => (
+                <div key={slider.id}>
                   <div className="flex justify-between mb-2">
-                    <Label htmlFor="brightness">Brightness</Label>
-                    <span className="text-sm text-gray-400">{brightness}%</span>
+                    <Label htmlFor={slider.id}>{slider.label}</Label>
                   </div>
-                  <Slider
-                    id="brightness"
-                    min={0}
-                    max={200}
-                    step={1}
-                    value={[brightness]}
-                    onValueChange={(value: number[]) => setBrightness(value[0])}
+                  <input
+                    type="range"
+                    id={slider.id}
+                    min={slider.min}
+                    max={slider.max}
+                    value={slider.value}
+                    onChange={(e) => slider.setter(Number(e.target.value))}
                     className="w-full"
                   />
                 </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <Label htmlFor="contrast">Contrast</Label>
-                    <span className="text-sm text-gray-400">{contrast}%</span>
-                  </div>
-                  <Slider
-                    id="contrast"
-                    min={0}
-                    max={200}
-                    step={1}
-                    value={[contrast]}
-                    onValueChange={(value: number[]) => setContrast(value[0])}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <Label htmlFor="saturation">Saturation</Label>
-                    <span className="text-sm text-gray-400">{saturation}%</span>
-                  </div>
-                  <Slider
-                    id="saturation"
-                    min={0}
-                    max={200}
-                    step={1}
-                    value={[saturation]}
-                    onValueChange={(value: number[]) => setSaturation(value[0])}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <Label htmlFor="hue">Hue</Label>
-                    <span className="text-sm text-gray-400">{hue}°</span>
-                  </div>
-                  <Slider
-                    id="hue"
-                    min={-180}
-                    max={180}
-                    step={1}
-                    value={[hue]}
-                    onValueChange={(value: number[]) => setHue(value[0])}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <Label htmlFor="vibrance">Vibrance</Label>
-                    <span className="text-sm text-gray-400">{vibrance}</span>
-                  </div>
-                  <Slider
-                    id="vibrance"
-                    min={-100}
-                    max={100}
-                    step={1}
-                    value={[vibrance]}
-                    onValueChange={(value: number[]) => setVibrance(value[0])}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <Label htmlFor="sharpness">Sharpness</Label>
-                    <span className="text-sm text-gray-400">{sharpness}</span>
-                  </div>
-                  <Slider
-                    id="sharpness"
-                    min={0}
-                    max={200}
-                    step={1}
-                    value={[sharpness]}
-                    onValueChange={(value: number[]) => setSharpness(value[0])}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-              <div className="pt-4">
-                <Button
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                  disabled={!image}
-                  // TODO: Wire to canvas saving logic soon!
-                  onClick={() => alert("Canvas saving coming soon!")}
-                >
-                  <Download className="w-5 h-5 mr-2" />
-                  Save Edited Image
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

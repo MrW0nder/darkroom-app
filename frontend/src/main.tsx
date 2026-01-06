@@ -1,5 +1,6 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { createRoot } from 'react-dom/client'; // Fix: Use named export from 'react-dom/client'
 import App from './App';
+import './index.css'; // Import styles
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
+// Correctly initialize the app
+createRoot(document.getElementById('root')!).render(<App />);
