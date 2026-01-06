@@ -17,8 +17,11 @@ from backend.db import get_db, engine, DATABASE_URL  # Import from db.py
 from backend.models import Base  # Ensure models are imported for table creation
 from backend.models.layers import Layer  # Updated Layer import
 from backend.api.imports import router as imports_router  # Import the imports router
+from backend.api.adjustments import router as adjustments_router  # Import adjustments router
+from backend.api.exports import router as exports_router  # Import exports router
+from backend.api.projects import router as projects_router  # Import projects router
 
-APP_TITLE = "Darkroom Backend"
+APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
 # Configure basic logging
 LOG_LEVEL = os.environ.get("DARKROOM_LOG_LEVEL", "INFO").upper()
@@ -27,8 +30,11 @@ logger = logging.getLogger("darkroom")
 
 app = FastAPI(title=APP_TITLE)
 
-# Include the imports router for file upload functionality
+# Include all API routers
 app.include_router(imports_router)
+app.include_router(adjustments_router)
+app.include_router(exports_router)
+app.include_router(projects_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
