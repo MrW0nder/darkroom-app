@@ -2,6 +2,7 @@
   "name": "darkroom-frontend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite --host 127.0.0.1",

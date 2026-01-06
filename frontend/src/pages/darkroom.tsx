@@ -38,23 +38,23 @@ const DarkroomApp: React.FC = () => {
     }
   };
 
-  // Fetch layers on initial mount
+  // On component mount, fetch the layers
   useEffect(() => {
     fetchLayers();
   }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setErrorMessage(""); // Reset any previous error messages
+    setErrorMessage(""); // Reset previous errors
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
+    // Validate image file type
     if (!file.type.match("image.*")) {
       setErrorMessage("Please upload a valid image file (JPG, PNG, WEBP).");
       return;
     }
 
-    // Validate file size
+    // Validate file size (limit: 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setErrorMessage("File size exceeds the 5MB limit. Please upload a smaller image.");
       return;
@@ -64,7 +64,7 @@ const DarkroomApp: React.FC = () => {
     formData.append("file", file);
 
     try {
-      // Upload the image to the backend
+      // Upload the image file to the backend
       const response = await fetch("http://127.0.0.1:8000/api/import", {
         method: "POST",
         body: formData,
@@ -75,21 +75,22 @@ const DarkroomApp: React.FC = () => {
       }
 
       const uploadedImage = await response.json();
-      setImage(uploadedImage.filepath); // Set the image preview using the uploaded filepath
+      setImage(uploadedImage.filepath); // Display the uploaded image preview
       console.log("Image uploaded successfully:", uploadedImage);
 
-      // Re-fetch layers to reflect updates dynamically
-      await fetchLayers(); // <-- Ensure layers are fetched after upload
+      // Re-fetch layers to update dynamically
+      await fetchLayers();
     } catch (error) {
       console.error("Error uploading image:", error);
       setErrorMessage("Failed to upload image. Please try again.");
     } finally {
       if (fileInputRef.current) {
-        fileInputRef.current.value = ""; // Reset file input
+        fileInputRef.current.value = ""; // Reset the input field
       }
     }
   };
 
+  // Function to reset all filters to default values
   const resetFilters = () => {
     setBrightness(100);
     setContrast(100);
@@ -97,6 +98,11 @@ const DarkroomApp: React.FC = () => {
     setHue(0);
     setVibrance(0);
     setSharpness(100);
+  };
+
+  // Simple placeholder for the canvas ready function
+  const handleCanvasReady = (_canvas: HTMLCanvasElement) => {
+    console.log("Canvas is ready!"); // Placeholder logic for the future
   };
 
   return (
@@ -175,9 +181,9 @@ const DarkroomApp: React.FC = () => {
                 hue={hue}
                 vibrance={vibrance}
                 sharpness={sharpness}
-                onCanvasReady={handleCanvasReady}
+                onCanvasReady={handleCanvasReady} // Now defined
               />
-              {[ // Render sliders dynamically
+              {[ // Render dynamic sliders
                 { id: "brightness", value: brightness, min: 0, max: 200, setter: setBrightness, label: "Brightness" },
                 { id: "contrast", value: contrast, min: 0, max: 200, setter: setContrast, label: "Contrast" },
                 { id: "saturation", value: saturation, min: 0, max: 200, setter: setSaturation, label: "Saturation" },
@@ -200,6 +206,7 @@ const DarkroomApp: React.FC = () => {
                   />
                 </div>
               ))}
+              <Button onClick={resetFilters}>Reset Filters</Button>
             </div>
           </div>
         )}
