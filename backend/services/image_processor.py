@@ -76,3 +76,53 @@ class ImageProcessor:
         factor = 2 ** value
         img_float = img.astype(np.float32) * factor
         return np.clip(img_float, 0, 255).astype(np.uint8)
+    
+    @staticmethod
+    def crop_image(img: np.ndarray, x: int, y: int, width: int, height: int) -> np.ndarray:
+        """
+        Crop image to specified rectangle
+        x, y: top-left corner
+        width, height: crop dimensions
+        """
+        img_height, img_width = img.shape[:2]
+        
+        # Ensure coordinates are within bounds
+        x = max(0, min(x, img_width))
+        y = max(0, min(y, img_height))
+        width = min(width, img_width - x)
+        height = min(height, img_height - y)
+        
+        return img[y:y+height, x:x+width]
+    
+    @staticmethod
+    def rotate_image(img: np.ndarray, angle: float) -> np.ndarray:
+        """
+        Rotate image by arbitrary angle
+        angle: rotation angle in degrees (positive = clockwise)
+        """
+        height, width = img.shape[:2]
+        center = (width / 2, height / 2)
+        
+        # Get rotation matrix
+        rotation_matrix = cv2.getRotationMatrix2D(center, -angle, 1.0)
+        
+        # Calculate new bounding dimensions
+        abs_cos = abs(rotation_matrix[0, 0])
+        abs_sin = abs(rotation_matrix[0, 1])
+        new_width = int(height * abs_sin + width * abs_cos)
+        new_height = int(height * abs_cos + width * abs_sin)
+        
+        # Adjust rotation matrix for new center
+        rotation_matrix[0, 2] += new_width / 2 - center[0]
+        rotation_matrix[1, 2] += new_height / 2 - center[1]
+        
+        # Perform rotation with black background
+        rotated = cv2.warpAffine(
+            img,
+            rotation_matrix,
+            (new_width, new_height),
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=(0, 0, 0)
+        )
+        
+        return rotated
