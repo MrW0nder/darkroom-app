@@ -21,6 +21,8 @@ from backend.api.adjustments import router as adjustments_router  # Import adjus
 from backend.api.exports import router as exports_router  # Import exports router
 from backend.api.projects import router as projects_router  # Import projects router
 from backend.api.crop import router as crop_router  # Import crop router
+from backend.api.brush import router as brush_router  # Import brush router
+from backend.api.presets import router as presets_router  # Import presets router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -37,6 +39,8 @@ app.include_router(adjustments_router)
 app.include_router(exports_router)
 app.include_router(projects_router)
 app.include_router(crop_router)
+app.include_router(brush_router)
+app.include_router(presets_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(

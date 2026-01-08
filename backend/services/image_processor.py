@@ -126,3 +126,43 @@ class ImageProcessor:
         )
         
         return rotated
+    
+    @staticmethod
+    def apply_brush_stroke(
+        img: np.ndarray,
+        points: list,
+        color: str,
+        size: int,
+        opacity: float
+    ) -> np.ndarray:
+        """
+        Apply a brush stroke to an image
+        points: flattened list of x, y coordinates
+        color: hex color like "#FF0000"
+        size: brush size in pixels
+        opacity: 0.0 to 1.0
+        """
+        # Convert hex color to BGR
+        color = color.lstrip('#')
+        r, g, b = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        bgr_color = (b, g, r)
+        
+        # Create a copy of the image
+        result = img.copy()
+        
+        # Convert points list to array of (x, y) tuples
+        point_pairs = [(int(points[i]), int(points[i+1])) for i in range(0, len(points)-1, 2)]
+        
+        # Draw lines between consecutive points
+        for i in range(len(point_pairs) - 1):
+            pt1 = point_pairs[i]
+            pt2 = point_pairs[i + 1]
+            
+            # Create overlay for alpha blending
+            overlay = result.copy()
+            cv2.line(overlay, pt1, pt2, bgr_color, size, cv2.LINE_AA)
+            
+            # Blend overlay with original based on opacity
+            cv2.addWeighted(overlay, opacity, result, 1 - opacity, 0, result)
+        
+        return result
