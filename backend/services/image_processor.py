@@ -166,3 +166,126 @@ class ImageProcessor:
             cv2.addWeighted(overlay, opacity, result, 1 - opacity, 0, result)
         
         return result
+
+    @staticmethod
+    def add_text_overlay(
+        image_path: str,
+        text: str,
+        font: str = "Arial",
+        font_size: int = 24,
+        color: str = "#FFFFFF",
+        position: Tuple[int, int] = (50, 50),
+        bold: bool = False,
+        italic: bool = False
+    ) -> str:
+        """
+        Add text overlay to an image using PIL.
+        Returns path to the new image.
+        """
+        from PIL import Image, ImageDraw, ImageFont
+        import os
+        
+        # Load image with PIL
+        img = Image.open(image_path)
+        draw = ImageDraw.Draw(img)
+        
+        # Try to load font (fallback to default if not found)
+        try:
+            # Construct font path for system fonts
+            font_style = ""
+            if bold and italic:
+                font_style = "bi"
+            elif bold:
+                font_style = "b"
+            elif italic:
+                font_style = "i"
+            
+            # Try common font paths
+            font_paths = [
+                f"/usr/share/fonts/truetype/dejavu/DejaVuSans{'-Bold' if bold else ''}{'-Oblique' if italic else ''}.ttf",
+                f"/System/Library/Fonts/{font}.ttf",
+                f"C:\\Windows\\Fonts\\{font.replace(' ', '')}.ttf",
+            ]
+            
+            pil_font = None
+            for path in font_paths:
+                if os.path.exists(path):
+                    pil_font = ImageFont.truetype(path, font_size)
+                    break
+            
+            if pil_font is None:
+                pil_font = ImageFont.load_default()
+        except:
+            pil_font = ImageFont.load_default()
+        
+        # Draw text
+        draw.text(position, text, fill=color, font=pil_font)
+        
+        # Save result
+        base_name = os.path.basename(image_path)
+        name, ext = os.path.splitext(base_name)
+        result_path = os.path.join(os.path.dirname(image_path), f"{name}_text{ext}")
+        img.save(result_path)
+        
+        return result_path
+    
+    @staticmethod
+    def add_shape(
+        image_path: str,
+        shape_type: str,
+        position: Tuple[int, int],
+        width: int,
+        height: int,
+        fill_color: Optional[str] = None,
+        stroke_color: str = "#FFFFFF",
+        stroke_width: int = 2,
+        rotation: float = 0.0
+    ) -> str:
+        """
+        Add shape to an image using OpenCV.
+        Returns path to the new image.
+        """
+        import os
+        
+        # Load image
+        img = cv2.imread(image_path)
+        if img is None:
+            raise ValueError(f"Could not load image from {image_path}")
+        
+        # Convert colors from hex to BGR
+        def hex_to_bgr(hex_color):
+            hex_color = hex_color.lstrip('#')
+            r, g, b = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+            return (b, g, r)
+        
+        stroke_bgr = hex_to_bgr(stroke_color)
+        fill_bgr = hex_to_bgr(fill_color) if fill_color else None
+        
+        x, y = position
+        
+        # Draw shape
+        if shape_type == 'rectangle':
+            if fill_bgr:
+                cv2.rectangle(img, (x, y), (x + width, y + height), fill_bgr, -1)
+            cv2.rectangle(img, (x, y), (x + width, y + height), stroke_bgr, stroke_width)
+        
+        elif shape_type == 'ellipse':
+            center = (x + width // 2, y + height // 2)
+            axes = (width // 2, height // 2)
+            if fill_bgr:
+                cv2.ellipse(img, center, axes, rotation, 0, 360, fill_bgr, -1)
+            cv2.ellipse(img, center, axes, rotation, 0, 360, stroke_bgr, stroke_width)
+        
+        elif shape_type == 'line':
+            cv2.line(img, (x, y), (x + width, y + height), stroke_bgr, stroke_width, cv2.LINE_AA)
+        
+        elif shape_type == 'arrow':
+            cv2.arrowedLine(img, (x, y), (x + width, y + height), stroke_bgr, stroke_width, cv2.LINE_AA, tipLength=0.3)
+        
+        # Save result
+        base_name = os.path.basename(image_path)
+        name, ext = os.path.splitext(base_name)
+        result_path = os.path.join(os.path.dirname(image_path), f"{name}_shape{ext}")
+        cv2.imwrite(result_path, img)
+        
+        return result_path
