@@ -1,168 +1,192 @@
-"""
-Image Processing Service
-Core image manipulation using OpenCV and PIL
-"""
-import cv2
-import numpy as np
-from PIL import Image
-from typing import Tuple, Optional
+import os
 import io
+import sys
+import logging
+from typing import Optional, List
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from PIL import Image as PILImage, ImageDraw, ImageFont
+
+# Debugging code: Print the Python search path
+print("Python Search Path:", sys.path)
+
+from backend.db import get_db, engine, DATABASE_URL  # Import from db.py
+from backend.models import Base  # Ensure models are imported for table creation
+from backend.models.layers import Layer  # Updated Layer import
+from backend.api.imports import router as imports_router  # Import the imports router
+from backend.api.adjustments import router as adjustments_router  # Import adjustments router
+from backend.api.exports import router as exports_router  # Import exports router
+from backend.api.projects import router as projects_router  # Import projects router
+from backend.api.crop import router as crop_router  # Import crop router
+from backend.api.brush import router as brush_router  # Import brush router
+from backend.api.presets import router as presets_router  # Import presets router
+from backend.api.text_shapes import router as text_shapes_router  # Import text & shapes router
+
+APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
+
+# Configure basic logging
+LOG_LEVEL = os.environ.get("DARKROOM_LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger("darkroom")
+
+app = FastAPI(title=APP_TITLE)
+
+# Include all API routers
+app.include_router(imports_router)
+app.include_router(adjustments_router)
+app.include_router(exports_router)
+app.include_router(projects_router)
+app.include_router(crop_router)
+app.include_router(brush_router)
+app.include_router(presets_router)
+app.include_router(text_shapes_router)
+
+# FIXED CORS SETTINGS: Explicitly allow both localhost origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],  # Allow React frontend origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 
-class ImageProcessor:
-    """Handles all image processing operations"""
-    
-    @staticmethod
-    def load_image(file_path: str) -> np.ndarray:
-        """Load an image file and return as numpy array (BGR format)"""
-        img = cv2.imread(file_path)
-        if img is None:
-            raise ValueError(f"Could not load image from {file_path}")
-        return img
-    
-    @staticmethod
-    def load_image_rgb(file_path: str) -> np.ndarray:
-        """Load an image file and return as numpy array (RGB format)"""
-        img = cv2.imread(file_path)
-        if img is None:
-            raise ValueError(f"Could not load image from {file_path}")
-        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
-    @staticmethod
-    def save_image(img: np.ndarray, file_path: str, quality: int = 95) -> None:
-        """Save numpy array as image file"""
-        cv2.imwrite(file_path, img, [cv2.IMWRITE_JPEG_QUALITY, quality])
-    
-    @staticmethod
-    def adjust_brightness(img: np.ndarray, value: float) -> np.ndarray:
-        """
-        Adjust brightness
-        value: -100 to 100 (0 = no change)
-        """
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
-        hsv[:, :, 2] = hsv[:, :, 2] * (1 + value / 100.0)
-        hsv[:, :, 2] = np.clip(hsv[:, :, 2], 0, 255)
-        return cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
-    
-    @staticmethod
-    def adjust_contrast(img: np.ndarray, value: float) -> np.ndarray:
-        """
-        Adjust contrast
-        value: -100 to 100 (0 = no change)
-        """
-        factor = (100 + value) / 100.0
-        img_float = img.astype(np.float32)
-        mean = np.mean(img_float)
-        result = (img_float - mean) * factor + mean
-        return np.clip(result, 0, 255).astype(np.uint8)
-    
-    @staticmethod
-    def adjust_saturation(img: np.ndarray, value: float) -> np.ndarray:
-        """
-        Adjust saturation
-        value: -100 to 100 (0 = no change)
-        """
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV).astype(np.float32)
-        hsv[:, :, 1] = hsv[:, :, 1] * (1 + value / 100.0)
-        hsv[:, :, 1] = np.clip(hsv[:, :, 1], 0, 255)
-        return cv2.cvtColor(hsv.astype(np.uint8), cv2.COLOR_HSV2BGR)
-    
-    @staticmethod
-    def adjust_exposure(img: np.ndarray, value: float) -> np.ndarray:
-        """
-        Adjust exposure (EV)
-        value: -3.0 to 3.0 (0 = no change)
-        """
-        factor = 2 ** value
-        img_float = img.astype(np.float32) * factor
-        return np.clip(img_float, 0, 255).astype(np.uint8)
-    
-    @staticmethod
-    def crop_image(img: np.ndarray, x: int, y: int, width: int, height: int) -> np.ndarray:
-        """
-        Crop image to specified rectangle
-        x, y: top-left corner
-        width, height: crop dimensions
-        """
-        img_height, img_width = img.shape[:2]
+@app.on_event("startup")
+def on_startup():
+    """
+    Initialize DB/tables and log configuration.
+    """
+    try:
+        # Dynamically create all missing database tables
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables initialized.")
+        logger.info("Storage directory: %s", engine.url.database)
+        logger.info("Database URL: %s", DATABASE_URL)
+    except Exception as e:
+        logger.exception("Unable to initialize the database on startup: %s", e)
+
+
+@app.get("/health", tags=["health"])
+def health():
+    return JSONResponse({"status": "ok"}, status_code=200)
+
+
+# --------------------------- Layers Endpoints ---------------------------
+
+# Pydantic model for creating new layers
+class LayerCreate(BaseModel):
+    project_id: int
+    type: str
+    content: Optional[str] = None
+    z_index: Optional[int] = None
+    locked: bool = False
+    opacity: int = 100
+    visible: bool = True
+    x: float = 0.0
+    y: float = 0.0
+    width: Optional[float] = None
+    height: Optional[float] = None
+    blend_mode: Optional[str] = None
+
+
+# Pydantic model for serializing existing layers
+class LayerResponse(BaseModel):
+    id: int
+    project_id: int
+    type: str
+    content: Optional[str]
+    z_index: Optional[int]
+    locked: bool
+    opacity: int
+    visible: bool
+    x: float
+    y: float
+    width: Optional[float]
+    height: Optional[float]
+    blend_mode: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
+@app.post("/api/layers", response_model=dict)
+def create_layer(layer: LayerCreate, db: Session = Depends(get_db)):
+    try:
+        new_layer = Layer(**layer.dict())
+        db.add(new_layer)
+        db.commit()
+        db.refresh(new_layer)
+        logger.debug("Layer created with ID: %s", new_layer.id)
+        return {"message": "Layer successfully created", "layer": new_layer.id}
+    except Exception as e:
+        logger.error("Error creating layer: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error while creating layer")
+
+
+@app.get("/api/layers", response_model=List[LayerResponse])
+def get_all_layers(project_id: Optional[int] = None, db: Session = Depends(get_db)):
+    try:
+        query = db.query(Layer)
+        if project_id is not None:
+            logger.debug("Filtering layers by project_id: %s", project_id)
+            query = query.filter(Layer.project_id == project_id)
+        layers = query.all()
+        logger.debug("Retrieved layers: %s", layers)
+        return layers
+    except Exception as e:
+        logger.error("Error fetching layers: %s", e)
+        raise HTTPException(status_code=500, detail="Internal server error while fetching layers")
+
+
+@app.get("/api/layers/{layer_id}", response_model=LayerResponse)
+def get_layer(layer_id: int, db: Session = Depends(get_db)):
+    try:
+        layer = db.query(Layer).filter(Layer.id == layer_id).first()
+        if not layer:
+            logger.warning("Layer not found for ID: %s", layer_id)
+            raise HTTPException(status_code=404, detail="Layer not found")
+        logger.debug("Retrieved layer: %s", layer)
+        return layer
+    except Exception as e:
+        logger.error("Error fetching layer with ID %s: %s", layer_id, e)
+        raise HTTPException(status_code=500, detail="Internal server error while fetching layer")
+
+
+@app.put("/api/layers/{layer_id}", response_model=dict)
+def update_layer(layer_id: int, layer: LayerCreate, db: Session = Depends(get_db)):
+    try:
+        existing_layer = db.query(Layer).filter(Layer.id == layer_id).first()
+        if not existing_layer:
+            logger.warning("Layer not found for update with ID: %s", layer_id)
+            raise HTTPException(status_code=404, detail="Layer not found")
         
-        # Ensure coordinates are within bounds
-        x = max(0, min(x, img_width))
-        y = max(0, min(y, img_height))
-        width = min(width, img_width - x)
-        height = min(height, img_height - y)
-        
-        return img[y:y+height, x:x+width]
-    
-    @staticmethod
-    def rotate_image(img: np.ndarray, angle: float) -> np.ndarray:
-        """
-        Rotate image by arbitrary angle
-        angle: rotation angle in degrees (positive = clockwise)
-        """
-        height, width = img.shape[:2]
-        center = (width / 2, height / 2)
-        
-        # Get rotation matrix
-        rotation_matrix = cv2.getRotationMatrix2D(center, -angle, 1.0)
-        
-        # Calculate new bounding dimensions
-        abs_cos = abs(rotation_matrix[0, 0])
-        abs_sin = abs(rotation_matrix[0, 1])
-        new_width = int(height * abs_sin + width * abs_cos)
-        new_height = int(height * abs_cos + width * abs_sin)
-        
-        # Adjust rotation matrix for new center
-        rotation_matrix[0, 2] += new_width / 2 - center[0]
-        rotation_matrix[1, 2] += new_height / 2 - center[1]
-        
-        # Perform rotation with black background
-        rotated = cv2.warpAffine(
-            img,
-            rotation_matrix,
-            (new_width, new_height),
-            borderMode=cv2.BORDER_CONSTANT,
-            borderValue=(0, 0, 0)
-        )
-        
-        return rotated
-    
-    @staticmethod
-    def apply_brush_stroke(
-        img: np.ndarray,
-        points: list,
-        color: str,
-        size: int,
-        opacity: float
-    ) -> np.ndarray:
-        """
-        Apply a brush stroke to an image
-        points: flattened list of x, y coordinates
-        color: hex color like "#FF0000"
-        size: brush size in pixels
-        opacity: 0.0 to 1.0
-        """
-        # Convert hex color to BGR
-        color = color.lstrip('#')
-        r, g, b = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
-        bgr_color = (b, g, r)
-        
-        # Create a copy of the image
-        result = img.copy()
-        
-        # Convert points list to array of (x, y) tuples
-        point_pairs = [(int(points[i]), int(points[i+1])) for i in range(0, len(points)-1, 2)]
-        
-        # Draw lines between consecutive points
-        for i in range(len(point_pairs) - 1):
-            pt1 = point_pairs[i]
-            pt2 = point_pairs[i + 1]
-            
-            # Create overlay for alpha blending
-            overlay = result.copy()
-            cv2.line(overlay, pt1, pt2, bgr_color, size, cv2.LINE_AA)
-            
-            # Blend overlay with original based on opacity
-            cv2.addWeighted(overlay, opacity, result, 1 - opacity, 0, result)
-        
-        return result
+        for field, value in layer.dict(exclude_unset=True).items():
+            setattr(existing_layer, field, value)
+
+        db.commit()
+        db.refresh(existing_layer)
+        logger.debug("Updated layer with ID: %s", layer_id)
+        return {"message": "Layer updated successfully", "layer": existing_layer.id}
+    except Exception as e:
+        logger.error("Error updating layer with ID %s: %s", layer_id, e)
+        raise HTTPException(status_code=500, detail="Internal server error while updating layer")
+
+
+@app.delete("/api/layers/{layer_id}", response_model=dict)
+def delete_layer(layer_id: int, db: Session = Depends(get_db)):
+    try:
+        layer = db.query(Layer).filter(Layer.id == layer_id).first()
+        if not layer:
+            logger.warning("Layer not found for deletion with ID: %s", layer_id)
+            raise HTTPException(status_code=404, detail="Layer not found")
+
+        db.delete(layer)
+        db.commit()
+        logger.debug("Deleted layer with ID: %s", layer_id)
+        return {"message": "Layer deleted successfully"}
+    except Exception as e:
+        logger.error("Error deleting layer with ID %s: %s", layer_id, e)
+        raise HTTPException(status_code=500, detail="Internal server error while deleting layer")
