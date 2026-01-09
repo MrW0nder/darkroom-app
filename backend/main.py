@@ -29,6 +29,9 @@ from backend.api.raw import router as raw_router  # Import RAW file router
 from backend.api.ai_detection import router as ai_detection_router  # Import AI detection router
 from backend.api.ai_inpainting import router as ai_inpainting_router  # Import AI inpainting router
 from backend.api.ai_upscale import router as ai_upscale_router  # Import AI upscaling router
+from backend.api.ai_face import router as ai_face_router  # Import AI face detection router
+from backend.api.ai_colorize import router as ai_colorize_router  # Import AI colorization router
+from backend.api.ai_presets import router as ai_presets_router  # Import AI smart presets router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -53,6 +56,9 @@ app.include_router(raw_router)
 app.include_router(ai_detection_router)
 app.include_router(ai_inpainting_router)
 app.include_router(ai_upscale_router)
+app.include_router(ai_face_router)
+app.include_router(ai_colorize_router)
+app.include_router(ai_presets_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
