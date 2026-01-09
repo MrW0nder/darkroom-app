@@ -17,6 +17,10 @@ numpy>=1.24.0
 # EXIF/Metadata
 piexif>=1.1.3
 
+# RAW Image Support (Phase 3)
+rawpy>=0.18.0
+exifread>=3.0.0
+
 # Testing
 pytest>=7.4.0
 pytest-asyncio>=0.21.0

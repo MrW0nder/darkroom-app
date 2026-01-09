@@ -9,6 +9,8 @@ import AdjustmentsPanel from '../components/panels/AdjustmentsPanel';
 import CropTool from '../components/tools/CropTool';
 import BrushTool from '../components/tools/BrushTool';
 import TextShapesTool from '../components/tools/TextShapesTool';
+import PresetsPanel from '../components/panels/PresetsPanel';
+import HistoryPanel from '../components/panels/HistoryPanel';
 import ShortcutsPanel from '../components/panels/ShortcutsPanel';
 import useKeyboard, { Tool } from '../hooks/useKeyboard';
 import { Move, Crop, Paintbrush, Type, Square, HelpCircle } from 'lucide-react';
@@ -197,6 +199,16 @@ const EditorPage: React.FC = () => {
               {/* Adjustments Section */}
               <AdjustmentsPanel />
 
+              {/* Presets Section */}
+              <div className="mt-4">
+                <PresetsPanel />
+              </div>
+
+              {/* History Section */}
+              <div className="mt-4">
+                <HistoryPanel />
+              </div>
+
               {/* Layers Section */}
               <div className="bg-gray-800 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-white mb-4">Layers</h3>
@@ -209,12 +221,7 @@ const EditorPage: React.FC = () => {
 
               {/* History Section */}
               <div className="bg-gray-800 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-white mb-4">History</h3>
-                <div className="space-y-2">
-                  <div className="p-3 bg-gray-700 rounded text-sm text-gray-300">
-                    No history yet
-                  </div>
-                </div>
+                <HistoryPanel />
               </div>
             </div>
           </aside>
