@@ -36,6 +36,7 @@ from backend.api.ai_crop import router as ai_crop_router  # Import AI auto-crop 
 from backend.api.ai_sky import router as ai_sky_router  # Import AI sky replacement router
 from backend.api.ai_lens import router as ai_lens_router  # Import AI lens correction router
 from backend.api.ai_enhance import router as ai_enhance_router  # Import AI enhancement router
+from backend.api.settings import router as settings_router  # Import settings router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -67,6 +68,7 @@ app.include_router(ai_crop_router)
 app.include_router(ai_sky_router)
 app.include_router(ai_lens_router)
 app.include_router(ai_enhance_router)
+app.include_router(settings_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
