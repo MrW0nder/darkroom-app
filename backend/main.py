@@ -41,6 +41,7 @@ from backend.api.filters import router as filters_router  # Import filters route
 from backend.api.metadata import router as metadata_router  # Import metadata router
 from backend.api.watermark import router as watermark_router  # Import watermark router
 from backend.api.color_grading import router as color_grading_router  # Import color grading router
+from backend.api.slideshow import router as slideshow_router  # Import slideshow router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -77,6 +78,7 @@ app.include_router(filters_router)
 app.include_router(metadata_router)
 app.include_router(watermark_router)
 app.include_router(color_grading_router)
+app.include_router(slideshow_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
