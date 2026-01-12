@@ -38,6 +38,7 @@ from backend.api.ai_lens import router as ai_lens_router  # Import AI lens corre
 from backend.api.ai_enhance import router as ai_enhance_router  # Import AI enhancement router
 from backend.api.settings import router as settings_router  # Import settings router
 from backend.api.filters import router as filters_router  # Import filters router
+from backend.api.metadata import router as metadata_router  # Import metadata router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -71,6 +72,7 @@ app.include_router(ai_lens_router)
 app.include_router(ai_enhance_router)
 app.include_router(settings_router)
 app.include_router(filters_router)
+app.include_router(metadata_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
