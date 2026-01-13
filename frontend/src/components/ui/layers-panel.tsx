@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './card';
-import { Button } from './button';
+import { Card, CardContent, CardHeader, CardTitle } from './card.js'; // Added .js extension
+import { Button } from './button.js'; // Added .js extension
 import { Eye, EyeOff, Lock, Unlock, Plus, Trash2 } from 'lucide-react';
 
 interface Layer {
@@ -28,7 +28,7 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
   onLayerVisibilityToggle,
   onLayerLockToggle,
   onAddLayer,
-  onDeleteLayer
+  onDeleteLayer,
 }: LayersPanelProps) => {
   return (
     <Card className="bg-gray-800 border-gray-700 w-64">
@@ -57,7 +57,7 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 mr-2"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     onLayerVisibilityToggle(layer.id);
                   }}
@@ -68,19 +68,19 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
                     <EyeOff className="w-4 h-4" />
                   )}
                 </Button>
-                
+
                 <div className="flex-1 min-w-0">
                   <div className="text-sm truncate">{layer.name}</div>
                   <div className="text-xs text-gray-400">
                     Opacity: {layer.opacity}%
                   </div>
                 </div>
-                
+
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     onLayerLockToggle(layer.id);
                   }}
@@ -91,12 +91,12 @@ const LayersPanel: React.FC<LayersPanelProps> = ({
                     <Unlock className="w-4 h-4" />
                   )}
                 </Button>
-                
+
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 ml-1"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     onDeleteLayer(layer.id);
                   }}

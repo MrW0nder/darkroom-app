@@ -1,4 +1,4 @@
-import { ImageAdjustments } from "../types/image-types";
+import type { ImageAdjustments } from "../types/image-types.js"; // Changed to type-only import
 
 // Removed unused FileUtils import
 
@@ -6,7 +6,6 @@ export class ImageProcessor {
   // Apply CSS filters to canvas
   static applyFilters(
     ctx: CanvasRenderingContext2D,
-    // removed unused width and height parameters
     adjustments: ImageAdjustments
   ): void {
     ctx.filter = `

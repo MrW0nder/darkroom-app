@@ -101,19 +101,23 @@ export const ToneCurvePanel: React.FC<ToneCurvePanelProps> = ({ onApply }) => {
     ctx.strokeStyle = channelColor;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    
+
     for (let i = 0; i < points.length - 1; i++) {
       const p1 = points[i];
       const p2 = points[i + 1];
-      const x1 = p1.x * width;
-      const y1 = (1 - p1.y) * height;
-      const x2 = p2.x * width;
-      const y2 = (1 - p2.y) * height;
 
-      if (i === 0) {
-        ctx.moveTo(x1, y1);
+      // Ensure p1 and p2 are defined before accessing their properties
+      if (p1 && p2) {
+        const x1 = p1.x * width;
+        const y1 = (1 - p1.y) * height;
+        const x2 = p2.x * width;
+        const y2 = (1 - p2.y) * height;
+
+        if (i === 0) {
+          ctx.moveTo(x1, y1);
+        }
+        ctx.lineTo(x2, y2);
       }
-      ctx.lineTo(x2, y2);
     }
     ctx.stroke();
 
@@ -121,12 +125,12 @@ export const ToneCurvePanel: React.FC<ToneCurvePanelProps> = ({ onApply }) => {
     points.forEach((point) => {
       const x = point.x * width;
       const y = (1 - point.y) * height;
-      
+
       ctx.fillStyle = channelColor;
       ctx.beginPath();
       ctx.arc(x, y, 5, 0, Math.PI * 2);
       ctx.fill();
-      
+
       ctx.strokeStyle = '#000000';
       ctx.lineWidth = 2;
       ctx.stroke();

@@ -1,0 +1,6 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./frontend" } // Points to the `frontend` subproject tsconfig.json
+  ]
+}

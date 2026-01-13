@@ -3,8 +3,8 @@
  * Switch between Library and Editor views
  */
 import React, { useState } from 'react';
-import LibraryPage from './pages/Library';
-import EditorPage from './pages/Editor';
+import LibraryPage from './pages/Library.js'; // Explicit .js extension
+import EditorPage from './pages/Editor.js';   // Explicit .js extension
 
 type View = 'library' | 'editor';
 

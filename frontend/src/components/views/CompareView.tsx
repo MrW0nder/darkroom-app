@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SplitSquareVertical, Grid3x3, Eye } from 'lucide-react';
+import { SplitSquareVertical, LayoutGrid, Eye } from 'lucide-react'; // Replaced Grid3x3 with LayoutGrid
 
 interface CompareViewProps {
   originalImage?: string;
@@ -58,7 +58,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
               }`}
               title="Side by Side"
             >
-              <Grid3x3 className="w-4 h-4" />
+              <LayoutGrid className="w-4 h-4" /> {/* Replaced with LayoutGrid */}
             </button>
             <button
               onClick={() => setCompareMode('overlay')}

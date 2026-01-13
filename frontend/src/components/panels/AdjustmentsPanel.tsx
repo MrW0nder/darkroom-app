@@ -3,7 +3,7 @@
  * Real-time sliders for image adjustments
  */
 import React from 'react';
-import { useEditor } from '../../contexts/EditorContext';
+import { useEditor } from '../../contexts/EditorContext.js'; // Added .js extension
 
 const AdjustmentsPanel: React.FC = () => {
   const { state, updateAdjustments, resetAdjustments } = useEditor();

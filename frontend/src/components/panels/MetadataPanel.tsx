@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { FileText, Edit2, Trash2, Save, X } from 'lucide-react';
 
+// Allow `value` to be either `string` or `undefined`
 interface MetadataField {
   label: string;
   key: string;
-  value: string;
+  value: string | undefined; // Updated from `string` to `string | undefined`
   editable: boolean;
 }
 
@@ -167,7 +168,7 @@ interface MetadataFieldProps {
   field: MetadataField;
   isEditing: boolean;
   onEdit: (key: string, value: string) => void;
-  editedValue?: string;
+  editedValue?: string | undefined; // Updated to match `value` in MetadataField
 }
 
 const MetadataField: React.FC<MetadataFieldProps> = ({
@@ -185,7 +186,7 @@ const MetadataField: React.FC<MetadataFieldProps> = ({
       {canEdit ? (
         <input
           type="text"
-          value={displayValue}
+          value={displayValue || ''}
           onChange={(e) => onEdit(field.key, e.target.value)}
           className="px-2 py-1 bg-gray-800 border border-gray-600 rounded text-sm focus:outline-none focus:border-blue-500"
         />

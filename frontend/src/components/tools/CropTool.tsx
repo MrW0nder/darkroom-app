@@ -4,8 +4,8 @@
  */
 import React, { useState, useRef, useEffect } from 'react';
 import { Stage, Layer, Rect, Transformer, Image as KonvaImage } from 'react-konva';
-import { useEditor } from '../../contexts/EditorContext';
-import { useCrop } from '../../hooks/useCrop';
+import { useEditor } from '../../contexts/EditorContext.js'; // Added .js extension
+import { useCrop } from '../../hooks/useCrop.js'; // Added .js extension
 
 interface CropToolProps {
   layerId: number;

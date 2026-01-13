@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Type, Square, Circle, Minus, ArrowRight } from 'lucide-react';
 import { Stage, Layer, Rect, Circle as KonvaCircle, Line, Text as KonvaText } from 'react-konva';
-import useTextShapes from '../../hooks/useTextShapes';
+import useTextShapes from '../../hooks/useTextShapes.js'; // Added .js extension
 
 interface TextShapesToolProps {
   layerId: number;

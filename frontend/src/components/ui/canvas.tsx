@@ -19,7 +19,7 @@ export default function Canvas({
   hue,
   vibrance,
   sharpness,
-  onCanvasReady
+  onCanvasReady,
 }: CanvasProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const imageRef = React.useRef<HTMLImageElement | null>(null);
@@ -66,12 +66,13 @@ export default function Canvas({
     // Helper: get mouse position relative to canvas
     const getPos = (e: MouseEvent | TouchEvent) => {
       const rect = canvas.getBoundingClientRect();
-      if ("touches" in e) {
+      if ("touches" in e && e.touches[0]) {
         const t = e.touches[0];
         return { x: t.clientX - rect.left, y: t.clientY - rect.top };
-      } else {
+      } else if ("clientX" in e && "clientY" in e) {
         return { x: e.clientX - rect.left, y: e.clientY - rect.top };
       }
+      return { x: 0, y: 0 }; // Default to {0,0} if no valid event coordinates exist
     };
 
     const startDraw = (e: MouseEvent | TouchEvent) => {
@@ -180,12 +181,12 @@ export default function Canvas({
     if (vibrance !== 0) {
       const vibranceValue = vibrance / 100;
       for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
+        const r = data[i] ?? 0; // Safeguard against undefined values
+        const g = data[i + 1] ?? 0;
+        const b = data[i + 2] ?? 0;
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
-        const saturation = (max - min) / (max + min);
+        const saturation = max + min === 0 ? 1 : (max - min) / (max + min);
         const adjustment = 1 + vibranceValue * (1 - saturation);
         data[i] = Math.min(255, r * adjustment);
         data[i + 1] = Math.min(255, g * adjustment);
@@ -197,9 +198,9 @@ export default function Canvas({
     if (sharpness !== 100) {
       const sharpnessValue = (sharpness - 100) / 100;
       for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
+        const r = data[i] ?? 0; // Safeguard against undefined values
+        const g = data[i + 1] ?? 0;
+        const b = data[i + 2] ?? 0;
         data[i] = Math.min(255, r + (r - 128) * sharpnessValue);
         data[i + 1] = Math.min(255, g + (g - 128) * sharpnessValue);
         data[i + 2] = Math.min(255, b + (b - 128) * sharpnessValue);

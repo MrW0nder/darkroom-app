@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Card, CardContent } from './card';
-import { Button } from './button';
+import { Card, CardContent } from './card.js'; // Added .js extension
+import { Button } from './button.js'; // Added .js extension
 
 interface ColorPickerProps {
   selectedColor: string;

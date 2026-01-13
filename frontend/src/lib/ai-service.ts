@@ -1,4 +1,4 @@
-import { apiClient } from "../services/ai/api-client";
+import { apiClient } from "../services/ai/api-client.js"; // Added .js extension
 
 export class AIService {
   // Upload image and get ID

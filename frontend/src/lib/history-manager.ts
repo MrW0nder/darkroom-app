@@ -49,18 +49,18 @@ export class HistoryManager {
   undo(): HistoryState | null {
     if (!this.canUndo()) return null;
     this.currentIndex--;
-    return this.history[this.currentIndex];
+    return this.history[this.currentIndex] ?? null; // Return null if undefined
   }
 
   redo(): HistoryState | null {
     if (!this.canRedo()) return null;
     this.currentIndex++;
-    return this.history[this.currentIndex];
+    return this.history[this.currentIndex] ?? null; // Return null if undefined
   }
 
   getCurrentState(): HistoryState | null {
     if (this.currentIndex === -1) return null;
-    return this.history[this.currentIndex];
+    return this.history[this.currentIndex] ?? null; // Return null if undefined
   }
 
   clear(): void {

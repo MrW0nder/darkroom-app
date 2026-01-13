@@ -4,9 +4,9 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useEditor } from '../contexts/EditorContext';
+import { useEditor } from '../contexts/EditorContext.js'; // Added .js extension
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://127.0.0.1:8000'; // Typed import.meta
 
 interface ApplyAdjustmentsParams {
   layerId: number;
@@ -15,7 +15,7 @@ interface ApplyAdjustmentsParams {
 export const useAdjustments = () => {
   const { state, setProcessing } = useEditor();
   const [error, setError] = useState<string | null>(null);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null); // Fixed NodeJS.Timeout issue
 
   const applyAdjustments = useCallback(async ({ layerId }: ApplyAdjustmentsParams) => {
     try {

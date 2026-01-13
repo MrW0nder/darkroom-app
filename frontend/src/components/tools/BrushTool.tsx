@@ -1,7 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
 import { Paintbrush, Eraser, Undo2, Redo2, Trash2, Save } from 'lucide-react';
-import { useBrush } from '../../hooks/useBrush';
+import { useBrush } from '../../hooks/useBrush.js'; // Added explicit file extension
+
+interface Stroke {
+  points: number[];
+  color: string;
+  size: number;
+  opacity: number;
+  isEraser: boolean;
+}
 
 interface BrushToolProps {
   layerId: number;
@@ -277,9 +285,8 @@ export const BrushTool: React.FC<BrushToolProps> = ({
               className="border border-gray-700 bg-white"
             >
               <Layer>
-                {/* Background Image */}
                 {/* Render all completed strokes */}
-                {strokes.map((stroke, i) => (
+                {strokes.map((stroke: Stroke, i: number) => (
                   <Line
                     key={i}
                     points={stroke.points}

@@ -50,7 +50,7 @@ export const useBrush = (layerId: number) => {
     setCurrentStroke(null);
 
     // Update history
-    const newHistory = history.slice(0, historyStep + 1);
+    const newHistory = history.slice(0, historyStep + 1); // Clear redo stack
     newHistory.push(newStrokes);
     setHistory(newHistory);
     setHistoryStep(newHistory.length - 1);
@@ -60,7 +60,7 @@ export const useBrush = (layerId: number) => {
     if (historyStep > 0) {
       const newStep = historyStep - 1;
       setHistoryStep(newStep);
-      setStrokes(history[newStep]);
+      setStrokes(history[newStep] ?? []); // Fallback to an empty array if undefined
     }
   }, [historyStep, history]);
 
@@ -68,7 +68,7 @@ export const useBrush = (layerId: number) => {
     if (historyStep < history.length - 1) {
       const newStep = historyStep + 1;
       setHistoryStep(newStep);
-      setStrokes(history[newStep]);
+      setStrokes(history[newStep] ?? []); // Fallback to an empty array if undefined
     }
   }, [historyStep, history]);
 

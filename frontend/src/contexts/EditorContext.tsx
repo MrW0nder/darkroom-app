@@ -2,7 +2,8 @@
  * EditorContext - Global state management for hybrid Lightroom + Photoshop editor
  * Manages projects, layers, adjustments, and editing state
  */
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import type { ReactNode } from 'react'; // Added type-only import for ReactNode
 
 interface Layer {
   id: number;
@@ -44,13 +45,15 @@ interface EditorState {
   layers: Layer[];
   selectedLayerId: number | null;
   adjustments: Adjustments;
-  historyStack: any[];
-  historyIndex: number;
+  historyStack: Array<any>;
+  historyIndex: number; // Tracks the current position in the history stack
   isProcessing: boolean;
 }
 
 interface EditorContextType {
   state: EditorState;
+  history: Array<any>; // Added history for direct use in HistoryPanel
+  currentHistoryIndex: number; // Added currentHistoryIndex for direct use in HistoryPanel
   setCurrentProject: (project: Project | null) => void;
   setLayers: (layers: Layer[]) => void;
   setSelectedLayerId: (id: number | null) => void;
@@ -59,6 +62,7 @@ interface EditorContextType {
   addToHistory: (action: any) => void;
   undo: () => void;
   redo: () => void;
+  clearHistory: () => void;
   canUndo: () => boolean;
   canRedo: () => boolean;
   setProcessing: (processing: boolean) => void;
@@ -83,7 +87,7 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     selectedLayerId: null,
     adjustments: { ...defaultAdjustments },
     historyStack: [],
-    historyIndex: -1,
+    historyIndex: -1, // Starts at -1 to indicate no actions in history yet
     isProcessing: false,
   });
 
@@ -104,15 +108,17 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       ...prev,
       adjustments: { ...prev.adjustments, ...adjustments },
     }));
+    addToHistory({ type: 'adjustment', changes: adjustments }); // Log changes
   };
 
   const resetAdjustments = () => {
     setState(prev => ({ ...prev, adjustments: { ...defaultAdjustments } }));
+    addToHistory({ type: 'resetAdjustments' }); // Log reset
   };
 
   const addToHistory = (action: any) => {
     setState(prev => {
-      const newHistory = prev.historyStack.slice(0, prev.historyIndex + 1);
+      const newHistory = prev.historyStack.slice(0, prev.historyIndex + 1); // Clear redo stack
       newHistory.push(action);
       return {
         ...prev,
@@ -127,7 +133,7 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       if (prev.historyIndex > 0) {
         return { ...prev, historyIndex: prev.historyIndex - 1 };
       }
-      return prev;
+      return prev; // No action if undo is unavailable
     });
   };
 
@@ -136,8 +142,16 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       if (prev.historyIndex < prev.historyStack.length - 1) {
         return { ...prev, historyIndex: prev.historyIndex + 1 };
       }
-      return prev;
+      return prev; // No action if redo is unavailable
     });
+  };
+
+  const clearHistory = () => {
+    setState(prev => ({
+      ...prev,
+      historyStack: [],
+      historyIndex: -1, // Reset history index
+    }));
   };
 
   const canUndo = () => state.historyIndex > 0;
@@ -151,6 +165,8 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     <EditorContext.Provider
       value={{
         state,
+        history: state.historyStack, // Expose history for direct use
+        currentHistoryIndex: state.historyIndex, // Expose current history index for direct use
         setCurrentProject,
         setLayers,
         setSelectedLayerId,
@@ -159,6 +175,7 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         addToHistory,
         undo,
         redo,
+        clearHistory,
         canUndo,
         canRedo,
         setProcessing,

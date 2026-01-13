@@ -1,6 +1,6 @@
-import { Label } from "./label";
-import { Slider } from "./slider";
-import { Button } from "./button";
+import { Label } from "./label.js"; // Added .js extension
+import { Slider } from "./slider.js"; // Added .js extension
+import { Button } from "./button.js"; // Added .js extension
 import { RotateCcw } from "lucide-react";
 
 interface AdjustmentProps {
@@ -13,19 +13,24 @@ interface AdjustmentProps {
   unit?: string;
 }
 
-const AdjustmentControl = ({ 
-  label, 
-  value, 
-  min, 
-  max, 
-  step, 
+const AdjustmentControl = ({
+  label,
+  value,
+  min,
+  max,
+  step,
   onChange,
-  unit = ""
+  unit = "",
 }: AdjustmentProps) => (
   <div>
     <div className="flex justify-between mb-1">
-      <Label htmlFor={label.toLowerCase()} className="text-xs">{label}</Label>
-      <span className="text-xs text-gray-400">{value}{unit}</span>
+      <Label htmlFor={label.toLowerCase()} className="text-xs">
+        {label}
+      </Label>
+      <span className="text-xs text-gray-400">
+        {value}
+        {unit}
+      </span>
     </div>
     <Slider
       id={label.toLowerCase()}
@@ -33,7 +38,11 @@ const AdjustmentControl = ({
       max={max}
       step={step}
       value={[value]}
-      onValueChange={(val: number[]) => onChange(val[0])}
+      onValueChange={(val: number[]) => {
+        if (val[0] !== undefined) {
+          onChange(val[0]); // Ensure val[0] is not undefined
+        }
+      }}
       className="w-full"
     />
   </div>
@@ -70,14 +79,14 @@ export default function PropertiesPanel({
   onVibranceChange,
   onSharpnessChange,
   onReset,
-  onApplyPreset
+  onApplyPreset,
 }: PropertiesPanelProps) {
   const presets = [
     { id: "vintage", name: "Vintage" },
     { id: "blackAndWhite", name: "Black & White" },
     { id: "highContrast", name: "High Contrast" },
     { id: "warm", name: "Warm" },
-    { id: "cool", name: "Cool" }
+    { id: "cool", name: "Cool" },
   ];
 
   return (
@@ -85,18 +94,13 @@ export default function PropertiesPanel({
       <div className="flex justify-between items-center">
         <h3 className="font-medium">Adjustments</h3>
         {onReset && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onReset}
-            className="text-xs"
-          >
+          <Button variant="ghost" size="sm" onClick={onReset} className="text-xs">
             <RotateCcw className="w-3 h-3 mr-1" />
             Reset All
           </Button>
         )}
       </div>
-      
+
       <div className="space-y-4">
         <AdjustmentControl
           label="Brightness"
@@ -107,7 +111,7 @@ export default function PropertiesPanel({
           onChange={onBrightnessChange}
           unit="%"
         />
-        
+
         <AdjustmentControl
           label="Contrast"
           value={contrast}
@@ -117,7 +121,7 @@ export default function PropertiesPanel({
           onChange={onContrastChange}
           unit="%"
         />
-        
+
         <AdjustmentControl
           label="Saturation"
           value={saturation}
@@ -127,7 +131,7 @@ export default function PropertiesPanel({
           onChange={onSaturationChange}
           unit="%"
         />
-        
+
         <AdjustmentControl
           label="Hue"
           value={hue}
@@ -137,7 +141,7 @@ export default function PropertiesPanel({
           onChange={onHueChange}
           unit="°"
         />
-        
+
         <AdjustmentControl
           label="Vibrance"
           value={vibrance}
@@ -147,7 +151,7 @@ export default function PropertiesPanel({
           onChange={onVibranceChange}
           unit="%"
         />
-        
+
         <AdjustmentControl
           label="Sharpness"
           value={sharpness}
@@ -158,7 +162,7 @@ export default function PropertiesPanel({
           unit="%"
         />
       </div>
-      
+
       <div className="space-y-3">
         <h3 className="font-medium">Presets</h3>
         <div className="grid grid-cols-3 gap-2">

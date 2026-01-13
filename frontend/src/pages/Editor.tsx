@@ -3,16 +3,17 @@
  * Hybrid Lightroom + Photoshop layout with full tool integration
  */
 import React, { useState } from 'react';
-import { EditorProvider } from '../contexts/EditorContext';
-import MainCanvas from '../components/editor/MainCanvas';
-import AdjustmentsPanel from '../components/panels/AdjustmentsPanel';
-import CropTool from '../components/tools/CropTool';
-import BrushTool from '../components/tools/BrushTool';
-import TextShapesTool from '../components/tools/TextShapesTool';
-import PresetsPanel from '../components/panels/PresetsPanel';
-import HistoryPanel from '../components/panels/HistoryPanel';
-import ShortcutsPanel from '../components/panels/ShortcutsPanel';
-import useKeyboard, { Tool } from '../hooks/useKeyboard';
+import { EditorProvider } from '../contexts/EditorContext.js'; // Added .js extension
+import MainCanvas from '../components/editor/MainCanvas.js'; // Added .js extension
+import AdjustmentsPanel from '../components/panels/AdjustmentsPanel.js'; // Added .js extension
+import CropTool from '../components/tools/CropTool.js'; // Added .js extension
+import BrushTool from '../components/tools/BrushTool.js'; // Added .js extension
+import TextShapesTool from '../components/tools/TextShapesTool.js'; // Added .js extension
+import PresetsPanel from '../components/panels/PresetsPanel.js'; // Added .js extension
+import HistoryPanel from '../components/panels/HistoryPanel.js'; // Added .js extension
+import ShortcutsPanel from '../components/panels/ShortcutsPanel.js'; // Added .js extension
+import useKeyboard from '../hooks/useKeyboard.js'; // Added .js extension
+import type { Tool } from '../hooks/useKeyboard.js'; // Added type-only import
 import { Move, Crop, Paintbrush, Type, Square, HelpCircle } from 'lucide-react';
 
 const EditorPage: React.FC = () => {
@@ -163,8 +164,8 @@ const EditorPage: React.FC = () => {
                 <BrushTool
                   layerId={testLayerId}
                   imageUrl={testImageUrl}
-                  originalWidth={800}
-                  originalHeight={600}
+                  width={800} // Updated this to match BrushToolProps
+                  height={600} // Updated this to match BrushToolProps
                   onComplete={handleToolComplete}
                   onCancel={handleToolCancel}
                 />
@@ -201,7 +202,19 @@ const EditorPage: React.FC = () => {
 
               {/* Presets Section */}
               <div className="mt-4">
-                <PresetsPanel />
+                <PresetsPanel
+                  currentAdjustments={{
+                    brightness: 50,
+                    contrast: 50,
+                    exposure: 0,
+                    highlights: 0,
+                    shadows: 0,
+                    saturation: 50,
+                    sharpness: 1,
+                  }}
+                  onApplyPreset={(preset) => console.log(`Apply preset: ${preset}`)}
+                  onSaveCurrentAsPreset={() => console.log('Save current adjustments as preset')}
+                />
               </div>
 
               {/* History Section */}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Clock, RotateCcw, RotateCw, Trash2, Image, Crop, PaintBucket, Type, Square } from 'lucide-react';
-import { useEditor } from '../../contexts/EditorContext';
+import { useEditor } from '../../contexts/EditorContext.js'; // Added .js extension for proper resolution
 
+// Declare a precise type for history actions
 interface HistoryAction {
   id: string;
   type: 'crop' | 'brush' | 'text' | 'shape' | 'adjustment' | 'import' | 'export';
@@ -11,9 +12,18 @@ interface HistoryAction {
 }
 
 export default function HistoryPanel() {
-  const { history, currentHistoryIndex, undo, redo, clearHistory } = useEditor();
+  // Use editor context and specify expected properties
+  const {
+    history = [], // Default to an empty array to prevent undefined access
+    currentHistoryIndex = 0, // Default to 0 if not provided
+    undo,
+    redo,
+    clearHistory,
+  } = useEditor(); // Ensure `useEditor` provides the required fields
+
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
+  // Return the appropriate icon for a given action type
   const getActionIcon = (type: string) => {
     switch (type) {
       case 'crop':
@@ -34,6 +44,7 @@ export default function HistoryPanel() {
     }
   };
 
+  // Format the timestamp for display
   const formatTimestamp = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -47,15 +58,14 @@ export default function HistoryPanel() {
     return date.toLocaleDateString();
   };
 
+  // Jump to a specific history point
   const jumpToHistoryPoint = (index: number) => {
     if (index < currentHistoryIndex) {
-      // Undo to that point
       const stepsToUndo = currentHistoryIndex - index;
       for (let i = 0; i < stepsToUndo; i++) {
         undo();
       }
     } else if (index > currentHistoryIndex) {
-      // Redo to that point
       const stepsToRedo = index - currentHistoryIndex;
       for (let i = 0; i < stepsToRedo; i++) {
         redo();
@@ -63,6 +73,7 @@ export default function HistoryPanel() {
     }
   };
 
+  // Determine whether undo and redo are possible
   const canUndo = currentHistoryIndex > 0;
   const canRedo = currentHistoryIndex < history.length - 1;
 
@@ -118,30 +129,28 @@ export default function HistoryPanel() {
             <p className="text-xs mt-1">Your editing history will appear here</p>
           </div>
         ) : (
-          history.map((action, index) => (
+          history.map((action: HistoryAction, index: number) => (
             <div
               key={action.id}
               onClick={() => jumpToHistoryPoint(index)}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
-              className={`
-                p-3 rounded-md cursor-pointer transition-all
-                ${
-                  index <= currentHistoryIndex
-                    ? 'bg-gray-800 border-l-2 border-blue-500'
-                    : 'bg-gray-800/50 border-l-2 border-gray-700 opacity-60'
-                }
-                ${hoveredIndex === index ? 'ring-2 ring-blue-500/50' : ''}
-                ${index === currentHistoryIndex ? 'ring-2 ring-blue-500' : ''}
-              `}
+              className={`p-3 rounded-md cursor-pointer transition-all ${
+                index <= currentHistoryIndex
+                  ? 'bg-gray-800 border-l-2 border-blue-500'
+                  : 'bg-gray-800/50 border-l-2 border-gray-700 opacity-60'
+              } ${hoveredIndex === index ? 'ring-2 ring-blue-500/50' : ''} ${
+                index === currentHistoryIndex ? 'ring-2 ring-blue-500' : ''
+              }`}
             >
               <div className="flex items-start gap-3">
                 {/* Icon */}
                 <div
-                  className={`
-                  p-2 rounded-md 
-                  ${index <= currentHistoryIndex ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-700 text-gray-500'}
-                `}
+                  className={`p-2 rounded-md ${
+                    index <= currentHistoryIndex
+                      ? 'bg-blue-500/20 text-blue-400'
+                      : 'bg-gray-700 text-gray-500'
+                  }`}
                 >
                   {getActionIcon(action.type)}
                 </div>

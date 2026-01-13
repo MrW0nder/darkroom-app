@@ -41,7 +41,7 @@ export class LayerManager {
     // Update active layer if needed
     if (this.activeLayerId === id) {
       this.activeLayerId = this.layers.length > 0 
-        ? this.layers[Math.max(0, index - 1)].id 
+        ? this.layers[Math.max(0, index - 1)]?.id ?? null // Added nullish check
         : null;
     }
 
@@ -93,10 +93,15 @@ export class LayerManager {
     const index = this.layers.findIndex(layer => layer.id === id);
     if (index === -1 || index === 0) return false;
 
-    // Swap with previous layer
-    [this.layers[index], this.layers[index - 1]] = 
-      [this.layers[index - 1], this.layers[index]];
-    
+    // Swap with previous layer with nullish fallback check
+    const currentLayer = this.layers[index] ?? null;
+    const previousLayer = this.layers[index - 1] ?? null;
+
+    if (!currentLayer || !previousLayer) {
+      return false;
+    }
+
+    [this.layers[index], this.layers[index - 1]] = [previousLayer, currentLayer];
     return true;
   }
 
@@ -104,10 +109,15 @@ export class LayerManager {
     const index = this.layers.findIndex(layer => layer.id === id);
     if (index === -1 || index === this.layers.length - 1) return false;
 
-    // Swap with next layer
-    [this.layers[index], this.layers[index + 1]] = 
-      [this.layers[index + 1], this.layers[index]];
-    
+    // Swap with next layer with nullish fallback check
+    const currentLayer = this.layers[index] ?? null;
+    const nextLayer = this.layers[index + 1] ?? null;
+
+    if (!currentLayer || !nextLayer) {
+      return false;
+    }
+
+    [this.layers[index], this.layers[index + 1]] = [nextLayer, currentLayer];
     return true;
   }
 }

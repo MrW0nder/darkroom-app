@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, FolderOpen, Trash2, Plus } from 'lucide-react';
 
+// Define the structure of a preset
 interface Preset {
   id: number;
   name: string;
@@ -16,9 +17,8 @@ interface Preset {
   created_at: string;
 }
 
-interface PresetsPanel
-
-Props {
+// Props interface for the PresetsPanel component
+interface PresetsPanelProps {
   currentAdjustments: {
     exposure: number;
     brightness: number;
@@ -32,6 +32,7 @@ Props {
   onSaveCurrentAsPreset: () => void;
 }
 
+// Define the React component
 export const PresetsPanel: React.FC<PresetsPanelProps> = ({
   currentAdjustments,
   onApplyPreset,
@@ -66,11 +67,11 @@ export const PresetsPanel: React.FC<PresetsPanelProps> = ({
     try {
       const response = await fetch('http://127.0.0.1:8000/api/presets/');
       if (response.ok) {
-        const data = await response.json();
+        const data: Preset[] = await response.json(); // Ensure `data` is typed
         setPresets(data);
-        
-        // Extract unique categories
-        const uniqueCategories = ['All', ...new Set(data.map((p: Preset) => p.category))];
+
+        // Extract unique categories and ensure proper typing
+        const uniqueCategories: string[] = ['All', ...Array.from(new Set(data.map((p: Preset) => p.category)))];
         setCategories(uniqueCategories);
       }
     } catch (error) {

@@ -75,8 +75,8 @@ const RAWImportPanel: React.FC<RAWImportPanelProps> = ({ onImport }) => {
 
   const detectFileFormat = (filename: string): string => {
     const ext = filename.toLowerCase().match(/\.(cr2|cr3|nef|nrw|arw|dng|raf|orf|rw2|pef|srw|erf|kdc|dcr|mos|raw)$/);
-    if (ext) {
-      const format = SUPPORTED_RAW_FORMATS.find((f) => f.extension.includes(ext[1]));
+    if (ext && ext[1]) { // Ensure ext and ext[1] exist
+      const format = SUPPORTED_RAW_FORMATS.find((f) => f.extension.includes(ext[1] as string)); // Use proper type assertion
       return format ? format.make : 'RAW';
     }
     return 'Unknown';

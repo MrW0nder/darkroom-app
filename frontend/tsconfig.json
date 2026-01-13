@@ -20,10 +20,16 @@
     "noFallthroughCasesInSwitch": true,
 
     /* React-specific settings */
-    "jsx": "react-jsx",                     // Ensures compatibility with React 17+ (new JSX transform)
-    "allowSyntheticDefaultImports": true,  // Allows default imports for "export =" modules
-    "esModuleInterop": true                // Enables compatibility with CommonJS modules (e.g., ReactDOM)
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    /* Node.js type compatibility */
+    "types": ["node"],                      // Includes Node.js type declarations to support fs, path, etc.
+
+    /* Output options */
+    "outDir": "./dist"                       // Ensures compiled output goes to the dist directory
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src/**/*"],                   // Includes all .ts and .tsx files in src and its subdirectories
+  "exclude": ["node_modules", "dist"]        // Excludes node_modules and output directory
 }

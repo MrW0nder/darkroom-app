@@ -11,8 +11,8 @@ interface ExportDialogProps {
 export interface ExportOptions {
   format: 'jpeg' | 'png' | 'tiff' | 'webp';
   quality: number;
-  width?: number;
-  height?: number;
+  width?: number | undefined; // Explicitly allows undefined
+  height?: number | undefined; // Explicitly allows undefined
   maintainAspectRatio: boolean;
   includeMetadata: boolean;
   colorSpace: 'sRGB' | 'Adobe RGB' | 'ProPhoto RGB';
@@ -23,7 +23,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
   isOpen,
   onClose,
   onExport,
-  imageName = 'untitled'
+  imageName = 'untitled',
 }) => {
   const [options, setOptions] = useState<ExportOptions>({
     format: 'jpeg',
@@ -31,7 +31,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
     maintainAspectRatio: true,
     includeMetadata: true,
     colorSpace: 'sRGB',
-    filename: imageName
+    filename: imageName,
   });
 
   if (!isOpen) return null;
@@ -122,7 +122,12 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
                   type="number"
                   placeholder="Width"
                   value={options.width || ''}
-                  onChange={(e) => setOptions({ ...options, width: e.target.value ? parseInt(e.target.value) : undefined })}
+                  onChange={(e) =>
+                    setOptions({
+                      ...options,
+                      width: e.target.value ? parseInt(e.target.value) : undefined,
+                    })
+                  }
                   className="w-full bg-gray-800 text-white px-3 py-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -131,7 +136,12 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
                   type="number"
                   placeholder="Height"
                   value={options.height || ''}
-                  onChange={(e) => setOptions({ ...options, height: e.target.value ? parseInt(e.target.value) : undefined })}
+                  onChange={(e) =>
+                    setOptions({
+                      ...options,
+                      height: e.target.value ? parseInt(e.target.value) : undefined,
+                    })
+                  }
                   className="w-full bg-gray-800 text-white px-3 py-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -143,7 +153,9 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
             <label className="block text-sm text-gray-400 mb-2">Color Space</label>
             <select
               value={options.colorSpace}
-              onChange={(e) => setOptions({ ...options, colorSpace: e.target.value as any })}
+              onChange={(e) =>
+                setOptions({ ...options, colorSpace: e.target.value as ExportOptions['colorSpace'] })
+              }
               className="w-full bg-gray-800 text-white px-3 py-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
             >
               <option value="sRGB">sRGB (Standard)</option>
@@ -158,7 +170,9 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
               <input
                 type="checkbox"
                 checked={options.maintainAspectRatio}
-                onChange={(e) => setOptions({ ...options, maintainAspectRatio: e.target.checked })}
+                onChange={(e) =>
+                  setOptions({ ...options, maintainAspectRatio: e.target.checked })
+                }
                 className="w-4 h-4"
               />
               Maintain aspect ratio
@@ -167,7 +181,9 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
               <input
                 type="checkbox"
                 checked={options.includeMetadata}
-                onChange={(e) => setOptions({ ...options, includeMetadata: e.target.checked })}
+                onChange={(e) =>
+                  setOptions({ ...options, includeMetadata: e.target.checked })
+                }
                 className="w-4 h-4"
               />
               Include metadata (EXIF, IPTC)
@@ -178,10 +194,15 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
           <div className="bg-gray-800 rounded p-3 text-sm">
             <div className="text-gray-400 mb-1">Estimated file size</div>
             <div className="text-white font-medium">
-              {options.format === 'png' ? '2-5 MB' : 
-               options.format === 'tiff' ? '10-20 MB' : 
-               options.quality > 90 ? '1-3 MB' : 
-               options.quality > 70 ? '500 KB - 1.5 MB' : '200-800 KB'}
+              {options.format === 'png'
+                ? '2-5 MB'
+                : options.format === 'tiff'
+                ? '10-20 MB'
+                : options.quality > 90
+                ? '1-3 MB'
+                : options.quality > 70
+                ? '500 KB - 1.5 MB'
+                : '200-800 KB'}
             </div>
           </div>
         </div>

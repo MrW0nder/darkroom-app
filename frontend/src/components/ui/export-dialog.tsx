@@ -1,16 +1,16 @@
 import * as React from "react";
 import { useState } from "react";
-import { Button } from "./button";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
-} from "./dialog";
-import { Label } from "./label";
-import { Slider } from "./slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
+import { Button } from "./button.js"; // Added .js extension
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "./dialog.js"; // Added .js extension
+import { Label } from "./label.js"; // Added .js extension
+import { Slider } from "./slider.js"; // Added .js extension
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select.js"; // Added .js extension
 
 interface ExportDialogProps {
   open: boolean;
@@ -30,7 +30,7 @@ export default function ExportDialog({
   open,
   onOpenChange,
   onExport,
-  fileName
+  fileName,
 }: ExportDialogProps) {
   const [format, setFormat] = useState<"jpeg" | "png" | "webp">("jpeg");
   const [quality, setQuality] = useState<number>(90);
@@ -42,7 +42,7 @@ export default function ExportDialog({
     const options: ExportOptions = {
       format,
       quality,
-      ...(customSize && { width, height })
+      ...(customSize && { width, height }),
     };
     onExport(options);
     onOpenChange(false);
@@ -54,13 +54,15 @@ export default function ExportDialog({
         <DialogHeader>
           <DialogTitle>Export Image</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div>
             <Label>File Name</Label>
-            <div className="text-sm text-gray-400 mt-1">{fileName || "edited-image"}</div>
+            <div className="text-sm text-gray-400 mt-1">
+              {fileName || "edited-image"}
+            </div>
           </div>
-          
+
           <div>
             <Label>Format</Label>
             <Select
@@ -77,7 +79,7 @@ export default function ExportDialog({
               </SelectContent>
             </Select>
           </div>
-          
+
           {format !== "png" && (
             <div>
               <Label>Quality: {quality}%</Label>
@@ -86,14 +88,18 @@ export default function ExportDialog({
                 max={100}
                 step={1}
                 value={[quality]}
-                onValueChange={(value: number[]) => setQuality(value[0])}
+                onValueChange={(value: number[]) => {
+                  if (value?.[0] !== undefined) {
+                    setQuality(value[0]); // Ensure value[0] is not undefined
+                  }
+                }}
               />
               <div className="text-xs text-gray-400 mt-1">
                 Higher quality = larger file size
               </div>
             </div>
           )}
-          
+
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
@@ -104,7 +110,7 @@ export default function ExportDialog({
             />
             <Label htmlFor="custom-size">Custom size</Label>
           </div>
-          
+
           {customSize && (
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -112,7 +118,9 @@ export default function ExportDialog({
                 <input
                   type="number"
                   value={width}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWidth(Number(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setWidth(Number(e.target.value) || 1) // Ensure no invalid input
+                  }
                   className="w-full p-2 border rounded bg-gray-800 border-gray-700"
                   min="1"
                 />
@@ -122,7 +130,9 @@ export default function ExportDialog({
                 <input
                   type="number"
                   value={height}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHeight(Number(e.target.value))}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setHeight(Number(e.target.value) || 1) // Ensure no invalid input
+                  }
                   className="w-full p-2 border rounded bg-gray-800 border-gray-700"
                   min="1"
                 />
@@ -130,14 +140,12 @@ export default function ExportDialog({
             </div>
           )}
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleExport}>
-            Export
-          </Button>
+          <Button onClick={handleExport}>Export</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

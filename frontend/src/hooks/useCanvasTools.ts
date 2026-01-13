@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { SelectionManager } from '../lib/tools/selection-manager';
-import { BrushEngine } from '../lib/tools/brush-engine';
-import { TextManager } from '../lib/tools/text-manager';
-import { ShapeRenderer } from '../lib/tools/shape-renderer';
+import { SelectionManager } from '../lib/tools/selection-manager.js'; // Added .js extension
+import { BrushEngine } from '../lib/tools/brush-engine.js'; // Added .js extension
+import { TextManager } from '../lib/tools/text-manager.js'; // Added .js extension
+import { ShapeRenderer } from '../lib/tools/shape-renderer.js'; // Added .js extension
 
 export const useCanvasTools = (canvasRef: React.RefObject<HTMLCanvasElement>) => {
   const [activeTool, setActiveTool] = useState<string>('selection');

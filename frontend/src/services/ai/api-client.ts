@@ -1,6 +1,6 @@
 // Configuration - replace with your actual API endpoint
-const API_BASE_URL = "https://your-ai-service-api.com/api";
-const API_KEY = process.env.REACT_APP_AI_API_KEY || "your-api-key-here";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://your-ai-service-api.com/api";
+const API_KEY = import.meta.env.VITE_API_KEY || "your-api-key-here";
 
 interface ApiRequestOptions {
   endpoint: string;
@@ -43,7 +43,7 @@ class ApiClient {
           `API Error: ${response.status} - ${errorData.message || response.statusText}`
         );
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error(`API Request failed: ${endpoint}`, error);
@@ -55,7 +55,7 @@ class ApiClient {
   async uploadImage(file: File): Promise<{ imageId: string }> {
     const formData = new FormData();
     formData.append("image", file);
-    
+
     return this.request<{ imageId: string }>({
       endpoint: "/images/upload",
       method: "POST",

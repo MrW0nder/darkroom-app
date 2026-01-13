@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from './button';
+import { Button } from './button.js'; // Added .js extension
 import { Move, Crop, Square, Circle, Type, Brush, Eraser, Droplet } from 'lucide-react';
 
 interface ToolbarProps {
