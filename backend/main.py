@@ -46,6 +46,10 @@ from backend.api.lens_corrections import router as lens_corrections_router  # Im
 from backend.api.local_adjustments import router as local_adjustments_router  # Import local adjustments router
 from backend.api.collections import router as collections_router  # Import collections router
 from backend.api.advanced_sharpening import router as advanced_sharpening_router  # Import advanced sharpening router
+from backend.api.print_module import router as print_module_router  # Import advanced print module router
+from backend.api.masks import router as masks_router  # Import mask refinement router
+from backend.api.color_zones import router as color_zones_router  # Import color zones router
+from backend.api.processing_pipeline import router as processing_pipeline_router  # Import processing pipeline router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -87,6 +91,10 @@ app.include_router(lens_corrections_router)
 app.include_router(local_adjustments_router)
 app.include_router(collections_router)
 app.include_router(advanced_sharpening_router)
+app.include_router(print_module_router)
+app.include_router(masks_router)
+app.include_router(color_zones_router)
+app.include_router(processing_pipeline_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
