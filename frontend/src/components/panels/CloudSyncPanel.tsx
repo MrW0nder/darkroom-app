@@ -25,7 +25,7 @@ const CloudSyncPanel: React.FC = () => {
           >
             <option value="">Select provider...</option>
             {providers.map(p => (
-              <key={p.name}option value={p.name}>{p.icon} {p.label}</option>
+              <option key={p.name} value={p.name}>{p.icon} {p.label}</option>
             ))}
           </select>
         </div>
