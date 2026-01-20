@@ -54,6 +54,10 @@ from backend.api.hdr_merge import router as hdr_merge_router  # Import HDR merge
 from backend.api.panorama import router as panorama_router  # Import panorama stitching router
 from backend.api.perspective import router as perspective_router  # Import perspective correction router
 from backend.api.color_management import router as color_management_router  # Import color management router
+from backend.api.timelapse import router as timelapse_router  # Import timelapse router
+from backend.api.focus_stack import router as focus_stack_router  # Import focus stacking router
+from backend.api.image_comparison import router as image_comparison_router  # Import image comparison router
+from backend.api.scopes import router as scopes_router  # Import scopes router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -103,6 +107,10 @@ app.include_router(hdr_merge_router)
 app.include_router(panorama_router)
 app.include_router(perspective_router)
 app.include_router(color_management_router)
+app.include_router(timelapse_router)
+app.include_router(focus_stack_router)
+app.include_router(image_comparison_router)
+app.include_router(scopes_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
