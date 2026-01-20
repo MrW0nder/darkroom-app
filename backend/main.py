@@ -62,6 +62,10 @@ from backend.api.plugins import router as plugins_router  # Import plugins route
 from backend.api.tethering import router as tethering_router  # Import tethering router
 from backend.api.retouching import router as retouching_router  # Import retouching router
 from backend.api.presets_library import router as presets_library_router  # Import presets library router
+from backend.api.cloud_sync import router as cloud_sync_router  # Import cloud sync router
+from backend.api.automation import router as automation_router  # Import automation router
+from backend.api.advanced_search import router as advanced_search_router  # Import advanced search router
+from backend.api.performance import router as performance_router  # Import performance router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -119,6 +123,10 @@ app.include_router(plugins_router)
 app.include_router(tethering_router)
 app.include_router(retouching_router)
 app.include_router(presets_library_router)
+app.include_router(cloud_sync_router)
+app.include_router(automation_router)
+app.include_router(advanced_search_router)
+app.include_router(performance_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
