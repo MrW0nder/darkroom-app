@@ -58,6 +58,10 @@ from backend.api.timelapse import router as timelapse_router  # Import timelapse
 from backend.api.focus_stack import router as focus_stack_router  # Import focus stacking router
 from backend.api.image_comparison import router as image_comparison_router  # Import image comparison router
 from backend.api.scopes import router as scopes_router  # Import scopes router
+from backend.api.plugins import router as plugins_router  # Import plugins router
+from backend.api.tethering import router as tethering_router  # Import tethering router
+from backend.api.retouching import router as retouching_router  # Import retouching router
+from backend.api.presets_library import router as presets_library_router  # Import presets library router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -111,6 +115,10 @@ app.include_router(timelapse_router)
 app.include_router(focus_stack_router)
 app.include_router(image_comparison_router)
 app.include_router(scopes_router)
+app.include_router(plugins_router)
+app.include_router(tethering_router)
+app.include_router(retouching_router)
+app.include_router(presets_library_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
