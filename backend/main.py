@@ -70,6 +70,10 @@ from backend.api.video_editing import router as video_editing_router  # Import v
 from backend.api.collaboration import router as collaboration_router  # Import collaboration router
 from backend.api.analytics import router as analytics_router  # Import analytics router
 from backend.api.tutorials import router as tutorials_router  # Import tutorials router
+from backend.api.mobile_responsive import router as mobile_responsive_router  # Import mobile/responsive router
+from backend.api.accessibility import router as accessibility_router  # Import accessibility router
+from backend.api.integrations import router as integrations_router  # Import integrations router
+from backend.api.polish import router as polish_router  # Import polish router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -135,6 +139,10 @@ app.include_router(video_editing_router)
 app.include_router(collaboration_router)
 app.include_router(analytics_router)
 app.include_router(tutorials_router)
+app.include_router(mobile_responsive_router)
+app.include_router(accessibility_router)
+app.include_router(integrations_router)
+app.include_router(polish_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
