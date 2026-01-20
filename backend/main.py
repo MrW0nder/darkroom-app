@@ -42,6 +42,38 @@ from backend.api.metadata import router as metadata_router  # Import metadata ro
 from backend.api.watermark import router as watermark_router  # Import watermark router
 from backend.api.color_grading import router as color_grading_router  # Import color grading router
 from backend.api.slideshow import router as slideshow_router  # Import slideshow router
+from backend.api.lens_corrections import router as lens_corrections_router  # Import lens corrections router
+from backend.api.local_adjustments import router as local_adjustments_router  # Import local adjustments router
+from backend.api.collections import router as collections_router  # Import collections router
+from backend.api.advanced_sharpening import router as advanced_sharpening_router  # Import advanced sharpening router
+from backend.api.print_module import router as print_module_router  # Import advanced print module router
+from backend.api.masks import router as masks_router  # Import mask refinement router
+from backend.api.color_zones import router as color_zones_router  # Import color zones router
+from backend.api.processing_pipeline import router as processing_pipeline_router  # Import processing pipeline router
+from backend.api.hdr_merge import router as hdr_merge_router  # Import HDR merge router
+from backend.api.panorama import router as panorama_router  # Import panorama stitching router
+from backend.api.perspective import router as perspective_router  # Import perspective correction router
+from backend.api.color_management import router as color_management_router  # Import color management router
+from backend.api.timelapse import router as timelapse_router  # Import timelapse router
+from backend.api.focus_stack import router as focus_stack_router  # Import focus stacking router
+from backend.api.image_comparison import router as image_comparison_router  # Import image comparison router
+from backend.api.scopes import router as scopes_router  # Import scopes router
+from backend.api.plugins import router as plugins_router  # Import plugins router
+from backend.api.tethering import router as tethering_router  # Import tethering router
+from backend.api.retouching import router as retouching_router  # Import retouching router
+from backend.api.presets_library import router as presets_library_router  # Import presets library router
+from backend.api.cloud_sync import router as cloud_sync_router  # Import cloud sync router
+from backend.api.automation import router as automation_router  # Import automation router
+from backend.api.advanced_search import router as advanced_search_router  # Import advanced search router
+from backend.api.performance import router as performance_router  # Import performance router
+from backend.api.video_editing import router as video_editing_router  # Import video editing router
+from backend.api.collaboration import router as collaboration_router  # Import collaboration router
+from backend.api.analytics import router as analytics_router  # Import analytics router
+from backend.api.tutorials import router as tutorials_router  # Import tutorials router
+from backend.api.mobile_responsive import router as mobile_responsive_router  # Import mobile/responsive router
+from backend.api.accessibility import router as accessibility_router  # Import accessibility router
+from backend.api.integrations import router as integrations_router  # Import integrations router
+from backend.api.polish import router as polish_router  # Import polish router
 
 APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
@@ -79,6 +111,38 @@ app.include_router(metadata_router)
 app.include_router(watermark_router)
 app.include_router(color_grading_router)
 app.include_router(slideshow_router)
+app.include_router(lens_corrections_router)
+app.include_router(local_adjustments_router)
+app.include_router(collections_router)
+app.include_router(advanced_sharpening_router)
+app.include_router(print_module_router)
+app.include_router(masks_router)
+app.include_router(color_zones_router)
+app.include_router(processing_pipeline_router)
+app.include_router(hdr_merge_router)
+app.include_router(panorama_router)
+app.include_router(perspective_router)
+app.include_router(color_management_router)
+app.include_router(timelapse_router)
+app.include_router(focus_stack_router)
+app.include_router(image_comparison_router)
+app.include_router(scopes_router)
+app.include_router(plugins_router)
+app.include_router(tethering_router)
+app.include_router(retouching_router)
+app.include_router(presets_library_router)
+app.include_router(cloud_sync_router)
+app.include_router(automation_router)
+app.include_router(advanced_search_router)
+app.include_router(performance_router)
+app.include_router(video_editing_router)
+app.include_router(collaboration_router)
+app.include_router(analytics_router)
+app.include_router(tutorials_router)
+app.include_router(mobile_responsive_router)
+app.include_router(accessibility_router)
+app.include_router(integrations_router)
+app.include_router(polish_router)
 
 # FIXED CORS SETTINGS: Explicitly allow both localhost origins
 app.add_middleware(
