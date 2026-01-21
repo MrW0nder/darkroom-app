@@ -91,7 +91,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
           <TabsContent value="sharpening" className="mt-4 space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">Sharpening Mode</label>
-              <Select value={mode} onValueChange={(value: any) => setMode(value)}>
+              <Select value={mode} onValueChange={(value: string) => setMode(value as SharpenMode)}>
                 <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -122,7 +122,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[amount]}
-                  onValueChange={(value) => setAmount(value[0])}
+                  onValueChange={(value: number[]) => setAmount(value[0])}
                   min={0}
                   max={150}
                   step={1}
@@ -136,7 +136,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[radius * 10]}
-                  onValueChange={(value) => setRadius(value[0] / 10)}
+                  onValueChange={(value: number[]) => setRadius(value[0] / 10)}
                   min={1}
                   max={30}
                   step={1}
@@ -150,7 +150,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[detail]}
-                  onValueChange={(value) => setDetail(value[0])}
+                  onValueChange={(value: number[]) => setDetail(value[0])}
                   min={0}
                   max={100}
                   step={1}
@@ -164,7 +164,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[masking]}
-                  onValueChange={(value) => setMasking(value[0])}
+                  onValueChange={(value: number[]) => setMasking(value[0])}
                   min={0}
                   max={100}
                   step={1}
@@ -197,7 +197,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[luminance]}
-                  onValueChange={(value) => setLuminance(value[0])}
+                  onValueChange={(value: number[]) => setLuminance(value[0])}
                   min={0}
                   max={100}
                   step={1}
@@ -212,7 +212,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[color]}
-                  onValueChange={(value) => setColor(value[0])}
+                  onValueChange={(value: number[]) => setColor(value[0])}
                   min={0}
                   max={100}
                   step={1}
@@ -227,7 +227,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[noiseDetail]}
-                  onValueChange={(value) => setNoiseDetail(value[0])}
+                  onValueChange={(value: number[]) => setNoiseDetail(value[0])}
                   min={0}
                   max={100}
                   step={1}
@@ -242,7 +242,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[contrast]}
-                  onValueChange={(value) => setContrast(value[0])}
+                  onValueChange={(value: number[]) => setContrast(value[0])}
                   min={-50}
                   max={50}
                   step={1}
@@ -257,7 +257,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
                 </div>
                 <Slider
                   value={[smoothness]}
-                  onValueChange={(value) => setSmoothness(value[0])}
+                  onValueChange={(value: number[]) => setSmoothness(value[0])}
                   min={0}
                   max={100}
                   step={1}
