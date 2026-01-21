@@ -2,7 +2,7 @@
  * App - Main application component with simple routing
  * Switch between Library and Editor views
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import LibraryPage from './pages/Library';
 import EditorPage from './pages/Editor';
 

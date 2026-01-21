@@ -17,7 +17,7 @@ interface StockPhoto {
 export const IntegrationsDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'social' | 'stock' | 'api'>('social');
   
-  const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([
+  const [socialAccounts] = useState<SocialAccount[]>([
     { platform: 'Instagram', username: '@user', connected: true },
     { platform: 'Facebook', username: 'User Name', connected: true },
     { platform: 'Twitter', username: '@user', connected: false },
