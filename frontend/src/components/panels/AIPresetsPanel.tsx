@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Wand2, Sparkles, Target, Zap } from 'lucide-react';
+import React, { useState } from 'react';
+import { Wand2, Target, Zap } from 'lucide-react';
 
 interface AIPresetsPanelProps {
   layerId: number | null;
