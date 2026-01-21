@@ -5,7 +5,6 @@ const AISkyPanel: React.FC = () => {
   const [skyType, setSkyType] = useState<string>('sunset');
   const [blendStrength, setBlendStrength] = useState<number>(0.8);
   const [preserveForeground, setPreserveForeground] = useState<boolean>(true);
-  const [presets, setPresets] = useState<any[]>([]);
   const [hasSky, setHasSky] = useState<boolean>(false);
 
   const skyTypes = [
