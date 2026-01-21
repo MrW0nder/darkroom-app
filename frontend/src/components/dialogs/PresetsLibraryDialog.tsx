@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Search, Download, Star, Tag, DollarSign, Filter } from 'lucide-react';
+import { X, Search, Star, Tag, DollarSign, Filter } from 'lucide-react';
 
 interface PresetMetadata {
   id: string;

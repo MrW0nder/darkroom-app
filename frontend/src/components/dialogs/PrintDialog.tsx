@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, X, Settings, Image as ImageIcon } from 'lucide-react';
+import { Printer, X, Image as ImageIcon } from 'lucide-react';
 
 interface PrintDialogProps {
   isOpen: boolean;
