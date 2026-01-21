@@ -14,7 +14,7 @@ interface BatchQueuePanelProps {
   onExport?: (layerIds: number[]) => void;
 }
 
-const BatchQueuePanel: React.FC<BatchQueuePanelProps> = ({ onImport, onExport }) => {
+const BatchQueuePanel: React.FC<BatchQueuePanelProps> = ({ onImport }) => {
   const [importQueue, setImportQueue] = useState<BatchItem[]>([]);
   const [exportQueue, setExportQueue] = useState<BatchItem[]>([]);
   const [activeTab, setActiveTab] = useState<'import' | 'export'>('import');

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const CloudSyncPanel: React.FC = () => {
   const [selectedProvider, setSelectedProvider] = useState<string>('');
-  const [syncStatus, setSyncStatus] = useState<string>('idle');
+  const [syncStatus] = useState<string>('idle');
 
   const providers = [
     { name: 'google_drive', label: 'Google Drive', icon: '📁' },
