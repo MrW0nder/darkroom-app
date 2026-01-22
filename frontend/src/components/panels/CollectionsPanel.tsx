@@ -14,14 +14,6 @@ interface Collection {
   count?: number;
 }
 
-interface ImageMetadata {
-  id: string;
-  rating: number;
-  colorLabel?: string;
-  flag?: string;
-  keywords: string[];
-}
-
 const COLOR_LABELS = [
   { value: 'red', color: 'bg-red-500', label: 'Red' },
   { value: 'yellow', color: 'bg-yellow-500', label: 'Yellow' },
@@ -38,7 +30,7 @@ export const CollectionsPanel: React.FC = () => {
   const [showNewDialog, setShowNewDialog] = useState(false);
 
   // Image metadata state
-  const [selectedImageId, setSelectedImageId] = useState<string>('');
+  const [selectedImageId] = useState<string>('');
   const [rating, setRating] = useState(0);
   const [colorLabel, setColorLabel] = useState<string>('');
   const [flag, setFlag] = useState<string>('none');
@@ -153,7 +145,7 @@ export const CollectionsPanel: React.FC = () => {
                 <Input
                   placeholder="Collection name..."
                   value={newCollectionName}
-                  onChange={(e) => setNewCollectionName(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewCollectionName(e.target.value)}
                   className="bg-gray-700 border-gray-600 text-white"
                 />
                 <Select value={collectionType} onValueChange={(value: any) => setCollectionType(value)}>
@@ -196,7 +188,7 @@ export const CollectionsPanel: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => {
+                      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         e.stopPropagation();
                         deleteCollection(collection.id);
                       }}
@@ -287,8 +279,8 @@ export const CollectionsPanel: React.FC = () => {
                 <Input
                   placeholder="Add keyword..."
                   value={newKeyword}
-                  onChange={(e) => setNewKeyword(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewKeyword(e.target.value)}
+                  onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && addKeyword()}
                   className="flex-1 bg-gray-800 border-gray-700 text-white"
                 />
                 <Button onClick={addKeyword} size="sm">
