@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const CloudSyncPanel: React.FC = () => {
   const [selectedProvider, setSelectedProvider] = useState<string>('');
-  const [syncStatus, setSyncStatus] = useState<string>('idle');
+  const [syncStatus] = useState<string>('idle');
 
   const providers = [
     { name: 'google_drive', label: 'Google Drive', icon: '📁' },
@@ -25,7 +25,7 @@ const CloudSyncPanel: React.FC = () => {
           >
             <option value="">Select provider...</option>
             {providers.map(p => (
-              <key={p.name}option value={p.name}>{p.icon} {p.label}</option>
+              <option key={p.name} value={p.name}>{p.icon} {p.label}</option>
             ))}
           </select>
         </div>

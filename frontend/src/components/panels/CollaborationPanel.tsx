@@ -9,7 +9,7 @@ interface Comment {
 
 export const CollaborationPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'team' | 'comments' | 'approvals'>('team');
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
 
   const handleAddComment = () => {

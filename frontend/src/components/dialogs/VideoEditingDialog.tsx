@@ -8,7 +8,7 @@ interface VideoClip {
 }
 
 export const VideoEditingDialog: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [clips, setClips] = useState<VideoClip[]>([]);
+  const [clips] = useState<VideoClip[]>([]);
   const [selectedTransition, setSelectedTransition] = useState('fade');
   const [outputFormat, setOutputFormat] = useState('mp4');
 
