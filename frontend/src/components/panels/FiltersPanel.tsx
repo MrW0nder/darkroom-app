@@ -10,7 +10,7 @@ interface Filter {
 export const FiltersPanel: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('none');
   const [intensity, setIntensity] = useState<number>(1.0);
-  const [filters, setFilters] = useState<Filter[]>([
+  const [filters] = useState<Filter[]>([
     { id: 'vintage', name: 'Vintage', category: 'Creative' },
     { id: 'sepia', name: 'Sepia', category: 'Classic' },
     { id: 'bw', name: 'Black & White', category: 'Classic' },
