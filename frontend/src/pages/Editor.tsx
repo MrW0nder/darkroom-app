@@ -55,6 +55,7 @@ const EditorPage: React.FC = () => {
   // Sample current adjustments (replace with actual state)
   const currentAdjustments = {
     exposure: 0,
+    brightness: 0,
     contrast: 0,
     highlights: 0,
     shadows: 0,
