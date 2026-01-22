@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, FolderOpen, Trash2, Plus } from 'lucide-react';
+import { Save, FolderOpen, Trash2 } from 'lucide-react';
 
 interface Preset {
   id: number;
@@ -33,7 +33,6 @@ interface PresetsPanelProps {
 export const PresetsPanel: React.FC<PresetsPanelProps> = ({
   currentAdjustments,
   onApplyPreset,
-  onSaveCurrentAsPreset,
 }) => {
   const [presets, setPresets] = useState<Preset[]>([]);
   const [filteredPresets, setFilteredPresets] = useState<Preset[]>([]);
@@ -68,7 +67,7 @@ export const PresetsPanel: React.FC<PresetsPanelProps> = ({
         setPresets(data);
         
         // Extract unique categories
-        const uniqueCategories = ['All', ...new Set(data.map((p: Preset) => p.category))];
+        const uniqueCategories: string[] = ['All', ...Array.from(new Set(data.map((p: Preset) => p.category)))];
         setCategories(uniqueCategories);
       }
     } catch (error) {

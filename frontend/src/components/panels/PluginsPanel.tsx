@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, Trash2, Power, Settings, Star } from 'lucide-react';
+import { Search, Download, Trash2, Power, Star } from 'lucide-react';
 
 interface Plugin {
   id: string;
