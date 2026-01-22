@@ -18,7 +18,6 @@ import { Move, Crop, Paintbrush, Type, Square, HelpCircle } from 'lucide-react';
 const EditorPage: React.FC = () => {
   const [canvasSize] = useState({ width: 800, height: 600 });
   const [activeTool, setActiveTool] = useState<Tool | null>(null);
-  const [selectedLayerId, setSelectedLayerId] = useState<number | null>(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Sample layer data for testing (replace with actual layer state)
@@ -51,6 +50,21 @@ const EditorPage: React.FC = () => {
 
   const handleToolCancel = () => {
     setActiveTool(null);
+  };
+
+  // Sample current adjustments (replace with actual state)
+  const currentAdjustments = {
+    exposure: 0,
+    contrast: 0,
+    highlights: 0,
+    shadows: 0,
+    saturation: 0,
+    sharpness: 0,
+  };
+
+  const handleApplyPreset = (preset: any) => {
+    console.log('Apply preset:', preset);
+    // Apply preset adjustments here
   };
 
   return (
@@ -163,8 +177,8 @@ const EditorPage: React.FC = () => {
                 <BrushTool
                   layerId={testLayerId}
                   imageUrl={testImageUrl}
-                  originalWidth={800}
-                  originalHeight={600}
+                  width={800}
+                  height={600}
                   onComplete={handleToolComplete}
                   onCancel={handleToolCancel}
                 />
@@ -201,7 +215,10 @@ const EditorPage: React.FC = () => {
 
               {/* Presets Section */}
               <div className="mt-4">
-                <PresetsPanel />
+                <PresetsPanel 
+                  currentAdjustments={currentAdjustments}
+                  onApplyPreset={handleApplyPreset}
+                />
               </div>
 
               {/* History Section */}

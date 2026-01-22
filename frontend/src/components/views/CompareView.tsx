@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SplitSquareVertical, Grid3x3, Eye } from 'lucide-react';
+import { SplitSquareVertical, Grid, Eye } from 'lucide-react';
 
 interface CompareViewProps {
   originalImage?: string;

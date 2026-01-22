@@ -2,26 +2,6 @@ import { useState } from 'react';
 
 type ShapeType = 'rectangle' | 'ellipse' | 'line' | 'arrow';
 
-interface TextState {
-  text: string;
-  font: string;
-  fontSize: number;
-  color: string;
-  position: { x: number; y: number };
-  bold: boolean;
-  italic: boolean;
-}
-
-interface ShapeState {
-  type: ShapeType;
-  position: { x: number; y: number };
-  size: { width: number; height: number };
-  fillColor: string | null;
-  strokeColor: string;
-  strokeWidth: number;
-  rotation: number;
-}
-
 const useTextShapes = (layerId: number) => {
   // Text state
   const [text, setText] = useState('');
