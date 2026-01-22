@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Slider } from '../ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
-import { Camera, Aperture, CheckCircle } from 'lucide-react';
+import { Camera, CheckCircle } from 'lucide-react';
 
 const LENS_PROFILES = [
   'Canon EF 50mm f/1.8',
@@ -61,7 +61,7 @@ export const LensCorrectionsPanel: React.FC = () => {
           <label className="text-sm font-medium text-gray-300">Lens Profile</label>
           <Select value={selectedLens} onValueChange={setSelectedLens}>
             <SelectTrigger className="w-full bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder="Select lens profile..." />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-gray-800 border-gray-700">
               {LENS_PROFILES.map((lens) => (
