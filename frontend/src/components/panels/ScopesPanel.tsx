@@ -6,7 +6,6 @@ interface ScopesPanelProps {
 
 export const ScopesPanel: React.FC<ScopesPanelProps> = ({ imageData }) => {
   const [activeScope, setActiveScope] = useState<'parade' | 'vectorscope' | 'waveform' | 'histogram'>('histogram');
-  const [scopeData, setScopeData] = useState<any>(null);
 
   useEffect(() => {
     if (imageData) {

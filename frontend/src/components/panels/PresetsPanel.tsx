@@ -67,7 +67,7 @@ export const PresetsPanel: React.FC<PresetsPanelProps> = ({
         setPresets(data);
         
         // Extract unique categories
-        const uniqueCategories: string[] = ['All', ...Array.from(new Set(data.map((p: Preset) => p.category)))];
+        const uniqueCategories: string[] = ['All', ...Array.from(new Set(data.map((p: Preset) => p.category))) as string[]];
         setCategories(uniqueCategories);
       }
     } catch (error) {

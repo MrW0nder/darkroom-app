@@ -11,7 +11,7 @@ interface Tutorial {
 
 export const TutorialsPanel: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all');
-  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [tutorials] = useState<Tutorial[]>([]);
 
   return (
     <div className="h-full flex flex-col bg-gray-900 text-white">
