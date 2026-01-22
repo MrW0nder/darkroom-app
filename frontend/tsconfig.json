@@ -21,6 +21,8 @@
 
     // --- ADD THIS LINE (CRUCIAL FOR REACT) ---
     "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
 
     /* Path aliases */
     "baseUrl": ".",

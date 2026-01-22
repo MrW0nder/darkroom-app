@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Printer, Grid, Image as ImageIcon, Layout } from 'lucide-react';
 
 interface AdvancedPrintDialogProps {
@@ -6,7 +6,7 @@ interface AdvancedPrintDialogProps {
   imageFiles: File[];
 }
 
-const AdvancedPrintDialog: React.FC<AdvancedPrintDialogProps> = ({ onClose, imageFiles }) => {
+const AdvancedPrintDialog = ({ onClose, imageFiles }: AdvancedPrintDialogProps) => {
   const [layout, setLayout] = useState('single');
   const [paperSize, setPaperSize] = useState('8x10');
   const [orientation, setOrientation] = useState('portrait');
@@ -29,7 +29,7 @@ const AdvancedPrintDialog: React.FC<AdvancedPrintDialogProps> = ({ onClose, imag
   const handlePrint = async () => {
     try {
       const formData = new FormData();
-      imageFiles.forEach(file => formData.append('images', file));
+      imageFiles.forEach((file: File) => formData.append('images', file));
 
       const response = await fetch('/api/print/layout', {
         method: 'POST',

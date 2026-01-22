@@ -1,6 +1,4 @@
-import React from 'react';
-
-const AdvancedSearchDialog: React.FC = () => {
+const AdvancedSearchDialog = () => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-gray-800 text-white rounded-lg p-6 max-w-2xl w-full">
