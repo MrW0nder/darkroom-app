@@ -17,7 +17,6 @@ type ShapeType = 'rectangle' | 'ellipse' | 'line' | 'arrow';
 
 const TextShapesTool: React.FC<TextShapesToolProps> = ({
   layerId,
-  imageUrl,
   originalWidth,
   originalHeight,
   onComplete,

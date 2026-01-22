@@ -37,7 +37,7 @@ const CropTool: React.FC<CropToolProps> = ({
   onComplete,
   onCancel,
 }) => {
-  const { state, setProcessing } = useEditor();
+  const { setProcessing } = useEditor();
   const {
     cropRect,
     setCropRect,

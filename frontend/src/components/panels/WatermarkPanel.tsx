@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Type, Image as ImageIcon, X, Settings } from 'lucide-react';
+import { Upload, Type, Image as ImageIcon, X } from 'lucide-react';
 
 interface WatermarkPanelProps {
   imageId?: string;
@@ -17,7 +17,7 @@ interface WatermarkConfig {
   scale?: number;
 }
 
-export const WatermarkPanel: React.FC<WatermarkPanelProps> = ({ imageId, onApply }) => {
+export const WatermarkPanel: React.FC<WatermarkPanelProps> = ({ onApply }) => {
   const [watermarkType, setWatermarkType] = useState<'text' | 'image'>('text');
   const [text, setText] = useState('© Your Name 2024');
   const [position, setPosition] = useState<WatermarkConfig['position']>('bottom-right');

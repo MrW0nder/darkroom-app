@@ -9,7 +9,7 @@ export function Select({ value, onValueChange, children }: { value: string; onVa
   );
 }
 
-export function SelectTrigger({ children, className }: { children: React.ReactNode; className?: string }) {
+export function SelectTrigger({ children }: { children: React.ReactNode; className?: string }) {
   // visually wraps the trigger, not strictly necessary for this stub
   return <>{children}</>;
 }
@@ -19,11 +19,11 @@ export function SelectValue() {
   return null;
 }
 
-export function SelectContent({ children, className }: { children: React.ReactNode; className?: string }) {
+export function SelectContent({ children }: { children: React.ReactNode; className?: string }) {
   // actual <option> content is rendered by child SelectItem
   return <>{children}</>;
 }
 
-export function SelectItem({ value, children, className }: { value: string; children: React.ReactNode; className?: string }) {
+export function SelectItem({ value, children }: { value: string; children: React.ReactNode; className?: string }) {
   return <option value={value}>{children}</option>;
 }

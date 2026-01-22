@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Stage, Layer, Line } from 'react-konva';
 import { Paintbrush, Eraser, Undo2, Redo2, Trash2, Save } from 'lucide-react';
 import { useBrush } from '../../hooks/useBrush';
@@ -14,7 +14,6 @@ interface BrushToolProps {
 
 export const BrushTool: React.FC<BrushToolProps> = ({
   layerId,
-  imageUrl,
   width,
   height,
   onComplete,
