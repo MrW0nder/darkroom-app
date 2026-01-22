@@ -20,15 +20,7 @@
     "noFallthroughCasesInSwitch": true,
 
     // --- ADD THIS LINE (CRUCIAL FOR REACT) ---
-    "jsx": "react-jsx",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-
-    /* Path aliases */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "jsx": "react-jsx"
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
