@@ -58,7 +58,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
               }`}
               title="Side by Side"
             >
-              <Grid3x3 className="w-4 h-4" />
+              <Grid className="w-4 h-4" />
             </button>
             <button
               onClick={() => setCompareMode('overlay')}
