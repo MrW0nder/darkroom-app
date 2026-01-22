@@ -1,17 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Clock, RotateCcw, RotateCw, Trash2, Image, Crop, PaintBucket, Type, Square } from 'lucide-react';
 import { useEditor } from '../../contexts/EditorContext';
 
-interface HistoryAction {
-  id: string;
-  type: 'crop' | 'brush' | 'text' | 'shape' | 'adjustment' | 'import' | 'export';
-  description: string;
-  timestamp: Date;
-  thumbnailUrl?: string;
-}
-
 export default function HistoryPanel() {
-  const { history, currentHistoryIndex, undo, redo, clearHistory } = useEditor();
+  const { state, undo, redo } = useEditor();
+  const history = state.historyStack;
+  const currentHistoryIndex = state.historyIndex;
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const getActionIcon = (type: string) => {
@@ -78,7 +72,7 @@ export default function HistoryPanel() {
           </span>
         </div>
         <button
-          onClick={clearHistory}
+          onClick={() => {/* TODO: Implement clearHistory */}}
           disabled={history.length === 0}
           className="p-1.5 hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           title="Clear History"
@@ -118,9 +112,9 @@ export default function HistoryPanel() {
             <p className="text-xs mt-1">Your editing history will appear here</p>
           </div>
         ) : (
-          history.map((action, index) => (
+          history.map((action: any, index: number) => (
             <div
-              key={action.id}
+              key={action.id || index}
               onClick={() => jumpToHistoryPoint(index)}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}

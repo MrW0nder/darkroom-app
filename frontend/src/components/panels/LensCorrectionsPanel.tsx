@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
+import { Slider } from '../ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Checkbox } from '../ui/checkbox';
 import { Camera, Aperture, CheckCircle } from 'lucide-react';
 
 const LENS_PROFILES = [
