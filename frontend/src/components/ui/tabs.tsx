@@ -68,7 +68,7 @@ interface TabsContentProps {
   children: React.ReactNode;
 }
 
-export const TabsContent: React.FC<TabsContentProps> = ({ value, className = '', children }) => {
+export const TabsContent: React.FC<TabsContentProps> = ({ value, className, children }) => {
   const context = useContext(TabsContext);
   if (!context) throw new Error('TabsContent must be used within Tabs');
 

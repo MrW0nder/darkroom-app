@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Grid3x3, Crop, Maximize2 } from 'lucide-react';
+import { Camera, Grid, Crop, Maximize2 } from 'lucide-react';
 
 const AICropPanel: React.FC = () => {
   const [mode, setMode] = useState<string>('smart');
@@ -9,7 +9,7 @@ const AICropPanel: React.FC = () => {
 
   const cropModes = [
     { value: 'smart', label: 'Smart Crop', icon: Camera },
-    { value: 'rule_of_thirds', label: 'Rule of Thirds', icon: Grid3x3 },
+    { value: 'rule_of_thirds', label: 'Rule of Thirds', icon: Grid },
     { value: 'golden_ratio', label: 'Golden Ratio', icon: Crop },
     { value: 'centered', label: 'Centered', icon: Maximize2 }
   ];
