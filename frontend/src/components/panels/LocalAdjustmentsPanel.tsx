@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState } from 'react';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
+import { Slider } from '../ui/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Circle, Move, Paintbrush, Sparkles } from 'lucide-react';
 
 type FilterType = 'radial' | 'gradient' | 'brush';
@@ -19,13 +19,13 @@ export const LocalAdjustmentsPanel: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   // Radial filter state
-  const [radialCenter, setRadialCenter] = useState({ x: 0.5, y: 0.5 });
-  const [radialRadius, setRadialRadius] = useState({ x: 0.3, y: 0.3 });
-  const [radialInvert, setRadialInvert] = useState(false);
+  const [radialCenter] = useState({ x: 0.5, y: 0.5 });
+  const [radialRadius] = useState({ x: 0.3, y: 0.3 });
+  const [radialInvert] = useState(false);
 
   // Gradient filter state
-  const [gradientStart, setGradientStart] = useState({ x: 0.2, y: 0.2 });
-  const [gradientEnd, setGradientEnd] = useState({ x: 0.8, y: 0.8 });
+  const [gradientStart] = useState({ x: 0.2, y: 0.2 });
+  const [gradientEnd] = useState({ x: 0.8, y: 0.8 });
 
   const handleApplyFilter = async () => {
     setLoading(true);
