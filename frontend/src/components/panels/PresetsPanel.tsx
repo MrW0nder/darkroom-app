@@ -16,9 +16,7 @@ interface Preset {
   created_at: string;
 }
 
-interface PresetsPanel
-
-Props {
+interface PresetsPanelProps {
   currentAdjustments: {
     exposure: number;
     brightness: number;
