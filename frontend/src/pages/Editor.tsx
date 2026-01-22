@@ -219,6 +219,10 @@ const EditorPage: React.FC = () => {
                 <PresetsPanel 
                   currentAdjustments={currentAdjustments}
                   onApplyPreset={handleApplyPreset}
+                  onSaveCurrentAsPreset={() => {
+                    // TODO: Implement save preset functionality
+                    console.log('Save current adjustments as preset');
+                  }}
                 />
               </div>
 
