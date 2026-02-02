@@ -9,21 +9,25 @@ export function Select({ value, onValueChange, children }: { value: string; onVa
   );
 }
 
-export function SelectTrigger({ children }: { children: React.ReactNode }) {
+export function SelectTrigger({ children, className }: { children: React.ReactNode; className?: string }) {
   // visually wraps the trigger, not strictly necessary for this stub
+  // className is accepted for API compatibility but not rendered in this simple implementation
   return <>{children}</>;
 }
 
-export function SelectValue() {
+export function SelectValue({ placeholder }: { placeholder?: string }) {
   // empty stub for compatibility
+  // placeholder is accepted for API compatibility but not rendered in this simple implementation
   return null;
 }
 
-export function SelectContent({ children }: { children: React.ReactNode }) {
+export function SelectContent({ children, className }: { children: React.ReactNode; className?: string }) {
   // actual <option> content is rendered by child SelectItem
+  // className is accepted for API compatibility but not rendered in this simple implementation
   return <>{children}</>;
 }
 
-export function SelectItem({ value, children }: { value: string; children: React.ReactNode }) {
+export function SelectItem({ value, children, className }: { value: string; children: React.ReactNode; className?: string }) {
+  // className is accepted for API compatibility but not applied to native option elements
   return <option value={value}>{children}</option>;
 }

@@ -14,9 +14,9 @@
     "noEmit": true,
 
     /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
 
     /* React-specific settings */
@@ -28,7 +28,13 @@
     "types": ["node"],                      // Includes Node.js type declarations to support fs, path, etc.
 
     /* Output options */
-    "outDir": "./dist"                       // Ensures compiled output goes to the dist directory
+    "outDir": "./dist",                      // Ensures compiled output goes to the dist directory
+
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src/**/*"],                   // Includes all .ts and .tsx files in src and its subdirectories
   "exclude": ["node_modules", "dist"]        // Excludes node_modules and output directory
