@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
   root: '.', // Root at project folder
   publicDir: 'public', // Static assets
