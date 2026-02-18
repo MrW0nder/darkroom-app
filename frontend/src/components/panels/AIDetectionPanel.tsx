@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Scan, Layers, Trash2, Loader2 } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface DetectedObject {
   id: number;
   class: string;
@@ -25,7 +27,7 @@ const AIDetectionPanel: React.FC<AIDetectionPanelProps> = ({ imageUrl, onComplet
     
     setDetecting(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/detect', {
+      const response = await fetch(`${API_URL}/api/ai/detect`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -62,7 +64,7 @@ const AIDetectionPanel: React.FC<AIDetectionPanelProps> = ({ imageUrl, onComplet
     
     setRemoving(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/remove-background', {
+      const response = await fetch(`${API_URL}/api/ai/remove-background`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_path: imageUrl })

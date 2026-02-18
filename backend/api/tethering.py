@@ -2,8 +2,10 @@ from fastapi import APIRouter, HTTPException, WebSocket
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 import asyncio
+import logging
 
 router = APIRouter(prefix="/api/tethering", tags=["tethering"])
+logger = logging.getLogger("darkroom.tethering")
 
 class Camera(BaseModel):
     id: str
@@ -214,7 +216,7 @@ async def live_view_stream(websocket: WebSocket, camera_id: str):
             })
             await asyncio.sleep(0.033)  # ~30fps
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.exception("WebSocket error: %s", e)
     finally:
         await websocket.close()
 

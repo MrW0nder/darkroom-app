@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Sparkles, User, Smile, Eye } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface AIFacePanelProps {
   layerId: number | null;
   onApply: () => void;
@@ -20,7 +22,7 @@ const AIFacePanel: React.FC<AIFacePanelProps> = ({ layerId, onApply }) => {
     
     setDetecting(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/detect-faces', {
+      const response = await fetch(`${API_URL}/api/ai/detect-faces`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ layer_id: layerId, min_confidence: 0.5 })
@@ -42,7 +44,7 @@ const AIFacePanel: React.FC<AIFacePanelProps> = ({ layerId, onApply }) => {
     
     setEnhancing(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/enhance-face', {
+      const response = await fetch(`${API_URL}/api/ai/enhance-face`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

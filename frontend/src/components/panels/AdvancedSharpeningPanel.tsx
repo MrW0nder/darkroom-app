@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sparkles, Zap } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 type SharpenMode = 'capture' | 'creative' | 'output';
 
 export const AdvancedSharpeningPanel: React.FC = () => {
@@ -26,7 +28,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
   const handleApplySharpening = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/advanced-sharpening/sharpen', {
+      const response = await fetch(`${API_URL}/api/advanced-sharpening/sharpen`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -39,8 +41,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
         })
       });
       
-      const data = await response.json();
-      console.log('Sharpening applied:', data);
+      await response.json();
     } catch (error) {
       console.error('Error applying sharpening:', error);
     } finally {
@@ -51,7 +52,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
   const handleApplyNoiseReduction = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/advanced-sharpening/denoise', {
+      const response = await fetch(`${API_URL}/api/advanced-sharpening/denoise`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,8 +65,7 @@ export const AdvancedSharpeningPanel: React.FC = () => {
         })
       });
       
-      const data = await response.json();
-      console.log('Noise reduction applied:', data);
+      await response.json();
     } catch (error) {
       console.error('Error applying noise reduction:', error);
     } finally {

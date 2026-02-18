@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Trash2, Copy, Lock, Unlock, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Layer {
-  id: string;
+  id: number;
   name: string;
   visible: boolean;
   locked: boolean;
@@ -13,15 +13,16 @@ interface Layer {
 
 interface LayersPanelProps {
   layers?: Layer[];
-  selectedLayerId?: string;
-  onLayerSelect?: (layerId: string) => void;
-  onLayerVisibilityToggle?: (layerId: string) => void;
-  onLayerDelete?: (layerId: string) => void;
-  onLayerDuplicate?: (layerId: string) => void;
-  onLayerLockToggle?: (layerId: string) => void;
-  onLayerOpacityChange?: (layerId: string, opacity: number) => void;
-  onLayerBlendModeChange?: (layerId: string, mode: string) => void;
-  onLayerReorder?: (layerId: string, direction: 'up' | 'down') => void;
+  selectedLayerId?: number;
+  onLayerSelect?: (layerId: number) => void;
+  onLayerVisibilityToggle?: (layerId: number) => void;
+  onLayerDelete?: (layerId: number) => void;
+  onLayerDuplicate?: (layerId: number) => void;
+  onLayerLockToggle?: (layerId: number) => void;
+  onLayerOpacityChange?: (layerId: number, opacity: number) => void;
+  onLayerBlendModeChange?: (layerId: number, mode: string) => void;
+  onLayerReorder?: (layerId: number, direction: 'up' | 'down') => void;
+  onLayerMergeDown?: (layerId: number) => void;
   onNewLayer?: () => void;
 }
 
@@ -36,9 +37,10 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
   onLayerOpacityChange,
   onLayerBlendModeChange,
   onLayerReorder,
+  onLayerMergeDown,
   onNewLayer
 }) => {
-  const [expandedLayerId, setExpandedLayerId] = useState<string | null>(null);
+  const [expandedLayerId, setExpandedLayerId] = useState<number | null>(null);
 
   const blendModes = [
     'Normal', 'Multiply', 'Screen', 'Overlay', 'Darken', 'Lighten',
@@ -46,13 +48,13 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
   ];
 
   return (
-    <div className="bg-gray-900 border-l border-gray-800 w-80 flex flex-col">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+      <div className="p-4 border-b border-gray-700 flex items-center justify-between">
         <h3 className="text-white font-semibold">Layers</h3>
         <button
           onClick={onNewLayer}
-          className="p-2 hover:bg-gray-800 rounded text-white"
+          className="p-2 hover:bg-gray-700 rounded text-white"
           title="New Layer"
         >
           <Plus size={18} />
@@ -69,16 +71,16 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
         ) : (
           <div className="p-2 space-y-1">
             {layers.map((layer, index) => (
-              <div key={layer.id} className="bg-gray-800 rounded overflow-hidden">
+              <div key={layer.id} className="bg-gray-700 rounded overflow-hidden">
                 {/* Layer Row */}
                 <div
-                  className={`p-3 flex items-center gap-2 cursor-pointer hover:bg-gray-750 ${
+                  className={`p-3 flex items-center gap-1 cursor-pointer hover:bg-gray-600 ${
                     selectedLayerId === layer.id ? 'bg-blue-900/30 border-l-2 border-blue-500' : ''
                   }`}
                   onClick={() => onLayerSelect?.(layer.id)}
                 >
                   {/* Thumbnail */}
-                  <div className="w-12 h-12 bg-gray-700 rounded flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
+                  <div className="w-12 h-12 bg-gray-600 rounded flex items-center justify-center text-gray-500 text-xs flex-shrink-0">
                     {layer.thumbnail ? (
                       <img src={layer.thumbnail} alt={layer.name} className="w-full h-full object-cover rounded" />
                     ) : (
@@ -99,7 +101,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
                         e.stopPropagation();
                         onLayerVisibilityToggle?.(layer.id);
                       }}
-                      className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+                      className="p-1 hover:bg-gray-600 rounded text-gray-400 hover:text-white"
                       title={layer.visible ? 'Hide Layer' : 'Show Layer'}
                     >
                       {layer.visible ? <Eye size={16} /> : <EyeOff size={16} />}
@@ -109,7 +111,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
                         e.stopPropagation();
                         onLayerLockToggle?.(layer.id);
                       }}
-                      className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+                      className="p-1 hover:bg-gray-600 rounded text-gray-400 hover:text-white"
                       title={layer.locked ? 'Unlock Layer' : 'Lock Layer'}
                     >
                       {layer.locked ? <Lock size={16} /> : <Unlock size={16} />}
@@ -119,7 +121,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
                         e.stopPropagation();
                         setExpandedLayerId(expandedLayerId === layer.id ? null : layer.id);
                       }}
-                      className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+                      className="p-1 hover:bg-gray-600 rounded text-gray-400 hover:text-white"
                       title="Layer Options"
                     >
                       {expandedLayerId === layer.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -194,6 +196,15 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
                         Move Down
                       </button>
                     </div>
+
+                    {/* Merge Down */}
+                    <button
+                      onClick={() => onLayerMergeDown?.(layer.id)}
+                      disabled={index === layers.length - 1}
+                      className="w-full px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white text-sm rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Merge Down
+                    </button>
                   </div>
                 )}
               </div>
@@ -203,7 +214,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="p-3 border-t border-gray-800 text-xs text-gray-400">
+      <div className="p-3 border-t border-gray-700 text-xs text-gray-400">
         {layers.length} {layers.length === 1 ? 'layer' : 'layers'}
       </div>
     </div>

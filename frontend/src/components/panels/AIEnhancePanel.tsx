@@ -10,17 +10,14 @@ const AIEnhancePanel: React.FC = () => {
 
   const handleDenoise = async () => {
     // API call placeholder
-    console.log('Denoising with strength:', noiseStrength);
   };
 
   const handleSharpen = async () => {
     // API call placeholder
-    console.log('Sharpening with strength:', sharpenStrength);
   };
 
   const handleAutoEnhance = async () => {
     // API call placeholder
-    console.log('Auto-enhancing image');
   };
 
   return (

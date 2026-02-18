@@ -38,7 +38,6 @@ export const FiltersPanel: React.FC = () => {
   const applyFilter = async (filterId: string) => {
     setSelectedFilter(filterId);
     // TODO: Call API to apply filter
-    console.log(`Applying filter: ${filterId} with intensity: ${intensity}`);
   };
 
   return (

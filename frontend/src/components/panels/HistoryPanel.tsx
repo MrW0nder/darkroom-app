@@ -22,6 +22,7 @@ export default function HistoryPanel() {
   } = useEditor(); // Ensure `useEditor` provides the required fields
 
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Return the appropriate icon for a given action type
   const getActionIcon = (type: string) => {
@@ -45,7 +46,8 @@ export default function HistoryPanel() {
   };
 
   // Format the timestamp for display
-  const formatTimestamp = (date: Date) => {
+  const formatTimestamp = (date?: Date) => {
+    if (!date) return 'just now';
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const seconds = Math.floor(diff / 1000);
@@ -77,8 +79,10 @@ export default function HistoryPanel() {
   const canUndo = currentHistoryIndex > 0;
   const canRedo = currentHistoryIndex < history.length - 1;
 
+  const visibleHistory = isExpanded ? history : history.slice(-3);
+
   return (
-    <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 h-full flex flex-col">
+    <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -88,14 +92,23 @@ export default function HistoryPanel() {
             ({currentHistoryIndex + 1}/{history.length})
           </span>
         </div>
-        <button
-          onClick={clearHistory}
-          disabled={history.length === 0}
-          className="p-1.5 hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Clear History"
-        >
-          <Trash2 className="w-4 h-4 text-gray-400" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="px-2 py-1 text-xs bg-gray-800 hover:bg-gray-700 text-white rounded transition-colors"
+            title={isExpanded ? 'Collapse history' : 'Expand history'}
+          >
+            {isExpanded ? 'Collapse' : 'Expand'}
+          </button>
+          <button
+            onClick={clearHistory}
+            disabled={history.length === 0}
+            className="p-1.5 hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Clear History"
+          >
+            <Trash2 className="w-4 h-4 text-gray-400" />
+          </button>
+        </div>
       </div>
 
       {/* Undo/Redo Controls */}
@@ -121,7 +134,7 @@ export default function HistoryPanel() {
       </div>
 
       {/* History List */}
-      <div className="flex-1 overflow-y-auto space-y-2">
+      <div className={`${isExpanded ? 'max-h-96' : 'max-h-40'} overflow-y-auto space-y-2`}>
         {history.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -129,18 +142,18 @@ export default function HistoryPanel() {
             <p className="text-xs mt-1">Your editing history will appear here</p>
           </div>
         ) : (
-          history.map((action: HistoryAction, index: number) => (
+          visibleHistory.map((action: HistoryAction, index: number) => (
             <div
               key={action.id}
-              onClick={() => jumpToHistoryPoint(index)}
+              onClick={() => jumpToHistoryPoint(history.length - visibleHistory.length + index)}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
               className={`p-3 rounded-md cursor-pointer transition-all ${
-                index <= currentHistoryIndex
+                (history.length - visibleHistory.length + index) <= currentHistoryIndex
                   ? 'bg-gray-800 border-l-2 border-blue-500'
                   : 'bg-gray-800/50 border-l-2 border-gray-700 opacity-60'
               } ${hoveredIndex === index ? 'ring-2 ring-blue-500/50' : ''} ${
-                index === currentHistoryIndex ? 'ring-2 ring-blue-500' : ''
+                (history.length - visibleHistory.length + index) === currentHistoryIndex ? 'ring-2 ring-blue-500' : ''
               }`}
             >
               <div className="flex items-start gap-3">
@@ -170,7 +183,7 @@ export default function HistoryPanel() {
                 </div>
 
                 {/* Current Indicator */}
-                {index === currentHistoryIndex && (
+                {(history.length - visibleHistory.length + index) === currentHistoryIndex && (
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                 )}
               </div>

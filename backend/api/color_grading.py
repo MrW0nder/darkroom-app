@@ -7,10 +7,8 @@ from pydantic import BaseModel
 from typing import Optional, List
 import cv2
 import numpy as np
-from io import BytesIO
-from PIL import Image
 
-router = APIRouter()
+router = APIRouter(prefix="/api/color-grading", tags=["color-grading"])
 
 
 class ColorWheels(BaseModel):
@@ -45,7 +43,7 @@ async def apply_color_grading(request: ColorGradingRequest):
             "success": True,
             "message": "Color grading applied",
             "adjustments": {
-                "color_wheels": request.color_wheels.dict() if request.color_wheels else None,
+                "color_wheels": request.color_wheels.model_dump() if request.color_wheels else None,
                 "temperature": request.temperature,
                 "tint": request.tint,
                 "vibrance": request.vibrance,

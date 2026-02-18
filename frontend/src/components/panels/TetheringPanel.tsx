@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Play, Square, Settings as SettingsIcon, Wifi } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface CameraDevice {
   id: string;
   name: string;
@@ -40,7 +42,7 @@ export const TetheringPanel: React.FC = () => {
 
   const fetchAvailableCameras = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/tethering/cameras/available');
+      const response = await fetch(`${API_URL}/api/tethering/cameras/available`);
       const data = await response.json();
       setCameras(data.cameras || []);
     } catch (error) {
@@ -50,7 +52,7 @@ export const TetheringPanel: React.FC = () => {
 
   const fetchConnectedCameras = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/tethering/cameras/connected');
+      const response = await fetch(`${API_URL}/api/tethering/cameras/connected`);
       const data = await response.json();
       if (data.cameras && data.cameras.length > 0) {
         setConnectedCamera(data.cameras[0]);
@@ -63,7 +65,7 @@ export const TetheringPanel: React.FC = () => {
   const fetchCameraSettings = async () => {
     if (!connectedCamera) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/tethering/cameras/${connectedCamera.id}/settings`);
+      const response = await fetch(`${API_URL}/api/tethering/cameras/${connectedCamera.id}/settings`);
       const data = await response.json();
       setSettings(data.settings);
     } catch (error) {
@@ -73,7 +75,7 @@ export const TetheringPanel: React.FC = () => {
 
   const handleConnect = async (cameraId: string) => {
     try {
-      await fetch(`http://localhost:8000/api/tethering/cameras/${cameraId}/connect`, {
+      await fetch(`${API_URL}/api/tethering/cameras/${cameraId}/connect`, {
         method: 'POST'
       });
       fetchConnectedCameras();
@@ -85,7 +87,7 @@ export const TetheringPanel: React.FC = () => {
   const handleDisconnect = async () => {
     if (!connectedCamera) return;
     try {
-      await fetch(`http://localhost:8000/api/tethering/cameras/${connectedCamera.id}/disconnect`, {
+      await fetch(`${API_URL}/api/tethering/cameras/${connectedCamera.id}/disconnect`, {
         method: 'POST'
       });
       setConnectedCamera(null);
@@ -99,7 +101,7 @@ export const TetheringPanel: React.FC = () => {
   const handleCapture = async () => {
     if (!connectedCamera) return;
     try {
-      await fetch(`http://localhost:8000/api/tethering/cameras/${connectedCamera.id}/capture`, {
+      await fetch(`${API_URL}/api/tethering/cameras/${connectedCamera.id}/capture`, {
         method: 'POST'
       });
     } catch (error) {
@@ -111,7 +113,7 @@ export const TetheringPanel: React.FC = () => {
     if (!connectedCamera) return;
     try {
       const endpoint = liveViewActive ? 'stop' : 'start';
-      await fetch(`http://localhost:8000/api/tethering/cameras/${connectedCamera.id}/liveview/${endpoint}`, {
+      await fetch(`${API_URL}/api/tethering/cameras/${connectedCamera.id}/liveview/${endpoint}`, {
         method: 'POST'
       });
       setLiveViewActive(!liveViewActive);

@@ -13,7 +13,7 @@ from ..models.models import Image
 from ..models.projects import Project
 from ..services.image_processor import ImageProcessor
 
-router = APIRouter()
+router = APIRouter(prefix="/api", tags=["batch"])
 
 # Batch Import Models
 class BatchImportResponse(BaseModel):

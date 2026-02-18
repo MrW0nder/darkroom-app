@@ -17,7 +17,6 @@ export const ScopesPanel: React.FC<ScopesPanelProps> = ({ imageData }) => {
 
   const fetchScopeData = async () => {
     // API call to analyze image and get scope data
-    console.log('Fetching scope data...');
   };
 
   return (

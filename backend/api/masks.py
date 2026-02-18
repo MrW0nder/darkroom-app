@@ -24,7 +24,7 @@ class ParametricMaskConfig(BaseModel):
     exposure_range: Optional[Tuple[float, float]] = None  # Min/max exposure values
     color_range: Optional[Dict[str, Tuple[float, float]]] = None  # RGB ranges
     luminance_range: Optional[Tuple[float, float]] = None  # Min/max luminance
-    saturation_range: Optional[Tuple[float, float]]] = None  # Min/max saturation
+    saturation_range: Optional[Tuple[float, float]] = None  # Min/max saturation
 
 
 class DrawnMaskConfig(BaseModel):

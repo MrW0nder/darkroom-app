@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 import cv2
 import numpy as np
 
-router = APIRouter()
+router = APIRouter(prefix="/api/lens-corrections", tags=["lens-corrections"])
 
 # Lens correction database (simplified - in production, load from comprehensive database)
 LENS_PROFILES = {

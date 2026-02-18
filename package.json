@@ -2,11 +2,12 @@
   "name": "darkroom-app",
   "version": "1.0.0",
   "description": "A project to manage darkroom workflows",
-  "main": "index.js",
+  "main": "frontend/electron/main.cjs",
   "scripts": {
-    "start": "node dist/index.js",
-    "build": "tsc",
-    "dev": "vite",
+    "start": "cd frontend && npm start",
+    "electron": "cd frontend && npx electron .",
+    "build": "cd frontend && npm run build",
+    "dev": "cd frontend && npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "MrW0nder",

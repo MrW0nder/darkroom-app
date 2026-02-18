@@ -14,7 +14,6 @@ export const FocusStackDialog: React.FC<FocusStackDialogProps> = ({ open, onClos
 
   const handleStack = async () => {
     // Call API to perform focus stacking
-    console.log('Focus stacking with:', { alignment, generateDepthMap, quality });
     onClose();
   };
 

@@ -7,6 +7,8 @@ import { Stage, Layer, Rect, Transformer, Image as KonvaImage } from 'react-konv
 import { useEditor } from '../../contexts/EditorContext.js'; // Added .js extension
 import { useCrop } from '../../hooks/useCrop.js'; // Added .js extension
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface CropToolProps {
   layerId: number;
   imageUrl: string;
@@ -65,7 +67,7 @@ const CropTool: React.FC<CropToolProps> = ({
     img.crossOrigin = 'anonymous';
     img.src = imageUrl.startsWith('data:') 
       ? imageUrl 
-      : `http://127.0.0.1:8000${imageUrl}`;
+      : `${API_URL}${imageUrl}`;
     
     img.onload = () => {
       setImage(img);

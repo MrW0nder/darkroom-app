@@ -10,7 +10,7 @@ from typing import Optional
 from ..db import get_db
 from ..models.models import Image
 
-router = APIRouter()
+router = APIRouter(prefix="/api", tags=["raw"])
 
 # RAW file format support
 SUPPORTED_RAW_FORMATS = {
@@ -150,8 +150,11 @@ async def process_raw_image(
         # Process RAW file (requires rawpy library)
         processed_image = process_raw_with_settings(
             str(raw_path),
-            settings.dict()
+            settings.model_dump()
         )
+
+        if processed_image is None:
+            raise HTTPException(status_code=501, detail="RAW processing not implemented")
         
         # Save processed image
         processed_filename = f"{raw_path.stem}_processed.jpg"
@@ -164,7 +167,7 @@ async def process_raw_image(
             "message": "RAW image processed successfully",
             "original_path": image.path,
             "processed_path": f"/uploads/{processed_filename}",
-            "settings_applied": settings.dict()
+            "settings_applied": settings.model_dump()
         }
         
     except Exception as e:
@@ -207,7 +210,7 @@ def process_raw_with_settings(file_path: str, settings: dict):
     #         exp_shift=settings.get('exposure_compensation', 0.0)
     #     )
     #     return rgb
-    pass
+    return None
 
 @router.get("/raw/{image_id}/metadata")
 async def get_raw_metadata(

@@ -17,7 +17,6 @@ const AILensPanel: React.FC = () => {
 
   const handleCorrectLens = async () => {
     // API call placeholder
-    console.log('Correcting lens distortion');
   };
 
   return (

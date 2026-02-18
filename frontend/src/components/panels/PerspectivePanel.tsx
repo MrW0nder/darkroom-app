@@ -10,7 +10,6 @@ export const PerspectivePanel: React.FC = () => {
 
   const handleAutoCorrect = async () => {
     // Auto-detect perspective distortion using Hough line detection
-    console.log('Auto-correcting perspective...');
   };
 
   const handleReset = () => {

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
-router = APIRouter()
+router = APIRouter(prefix="/api/collaboration", tags=["collaboration"])
 
 class Comment(BaseModel):
     user: str
@@ -35,7 +35,7 @@ async def add_comment(project_id: str, image_id: str, comment: Comment):
         "comment_id": f"cmt_{datetime.now().timestamp()}",
         "project_id": project_id,
         "image_id": image_id,
-        "comment": comment.dict()
+        "comment": comment.model_dump()
     }
 
 @router.get("/comments/{project_id}/{image_id}")

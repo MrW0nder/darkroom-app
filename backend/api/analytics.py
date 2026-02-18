@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Dict
 from datetime import datetime, timedelta
 
-router = APIRouter()
+router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 class LibraryStats(BaseModel):
     total_images: int

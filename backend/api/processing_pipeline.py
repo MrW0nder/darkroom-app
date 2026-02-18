@@ -124,7 +124,7 @@ async def create_pipeline(name: str):
     
     return {
         "status": "success",
-        "pipeline": pipeline.dict()
+        "pipeline": pipeline.model_dump()
     }
 
 
@@ -136,7 +136,7 @@ async def get_pipeline(pipeline_id: str):
     
     return {
         "status": "success",
-        "pipeline": pipelines_db[pipeline_id].dict()
+        "pipeline": pipelines_db[pipeline_id].model_dump()
     }
 
 
@@ -145,7 +145,7 @@ async def list_pipelines():
     """List all pipelines."""
     return {
         "status": "success",
-        "pipelines": [p.dict() for p in pipelines_db.values()]
+        "pipelines": [p.model_dump() for p in pipelines_db.values()]
     }
 
 
@@ -172,7 +172,7 @@ async def add_module_to_pipeline(
     
     return {
         "status": "success",
-        "pipeline": pipeline.dict()
+        "pipeline": pipeline.model_dump()
     }
 
 
@@ -193,7 +193,7 @@ async def remove_module_from_pipeline(
     
     return {
         "status": "success",
-        "pipeline": pipeline.dict()
+        "pipeline": pipeline.model_dump()
     }
 
 
@@ -226,7 +226,7 @@ async def reorder_modules(
     
     return {
         "status": "success",
-        "pipeline": pipeline.dict()
+        "pipeline": pipeline.model_dump()
     }
 
 
@@ -253,7 +253,7 @@ async def toggle_module(
     
     return {
         "status": "success",
-        "pipeline": pipeline.dict()
+        "pipeline": pipeline.model_dump()
     }
 
 
@@ -280,7 +280,7 @@ async def update_module_parameters(
     
     return {
         "status": "success",
-        "pipeline": pipeline.dict()
+        "pipeline": pipeline.model_dump()
     }
 
 
@@ -304,7 +304,7 @@ async def save_pipeline_preset(preset: PipelinePreset):
     return {
         "status": "success",
         "preset_id": preset_id,
-        "preset": preset.dict()
+        "preset": preset.model_dump()
     }
 
 
@@ -320,7 +320,7 @@ async def list_presets(category: Optional[str] = None):
     
     return {
         "status": "success",
-        "presets": [p.dict() for p in presets]
+        "presets": [p.model_dump() for p in presets]
     }
 
 
@@ -356,7 +356,7 @@ async def apply_preset_to_pipeline(
     
     return {
         "status": "success",
-        "pipeline": pipeline.dict()
+        "pipeline": pipeline.model_dump()
     }
 
 
@@ -376,7 +376,7 @@ async def create_history_snapshot(
     snapshot = {
         "name": snapshot_name,
         "timestamp": datetime.now().isoformat(),
-        "modules": [m.dict() for m in pipeline.modules]
+        "modules": [m.model_dump() for m in pipeline.modules]
     }
     
     return {

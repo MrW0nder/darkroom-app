@@ -23,7 +23,6 @@ const AISkyPanel: React.FC = () => {
 
   const handleReplaceSky = async () => {
     // API call placeholder
-    console.log('Replacing sky with:', skyType);
   };
 
   return (

@@ -4,7 +4,7 @@ from typing import List, Optional
 import cv2
 import numpy as np
 
-router = APIRouter()
+router = APIRouter(prefix="/api/video-editing", tags=["video-editing"])
 
 class VideoClip(BaseModel):
     id: str

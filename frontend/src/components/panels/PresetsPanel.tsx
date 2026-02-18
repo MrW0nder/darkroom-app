@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Save, FolderOpen, Trash2, Plus } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 // Define the structure of a preset
 interface Preset {
   id: number;
@@ -65,7 +67,7 @@ export const PresetsPanel: React.FC<PresetsPanelProps> = ({
   const fetchPresets = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/presets/');
+      const response = await fetch(`${API_URL}/api/presets/`);
       if (response.ok) {
         const data: Preset[] = await response.json(); // Ensure `data` is typed
         setPresets(data);
@@ -89,7 +91,7 @@ export const PresetsPanel: React.FC<PresetsPanelProps> = ({
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/presets/', {
+      const response = await fetch(`${API_URL}/api/presets/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -124,7 +126,7 @@ export const PresetsPanel: React.FC<PresetsPanelProps> = ({
 
     setIsLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/presets/${presetId}`, {
+      const response = await fetch(`${API_URL}/api/presets/${presetId}`, {
         method: 'DELETE',
       });
 

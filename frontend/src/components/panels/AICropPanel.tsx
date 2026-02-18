@@ -16,7 +16,6 @@ const AICropPanel: React.FC = () => {
 
   const handleAutoCrop = async () => {
     // API call placeholder
-    console.log('Auto crop with mode:', mode);
   };
 
   const handleGetSuggestions = async () => {

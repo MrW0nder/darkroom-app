@@ -57,7 +57,7 @@ interface EditorContextType {
   setCurrentProject: (project: Project | null) => void;
   setLayers: (layers: Layer[]) => void;
   setSelectedLayerId: (id: number | null) => void;
-  updateAdjustments: (adjustments: Partial<Adjustments>) => void;
+  updateAdjustments: (adjustments: Partial<Adjustments>, options?: { recordHistory?: boolean }) => void;
   resetAdjustments: () => void;
   addToHistory: (action: any) => void;
   undo: () => void;
@@ -67,6 +67,20 @@ interface EditorContextType {
   canRedo: () => boolean;
   setProcessing: (processing: boolean) => void;
 }
+
+const createHistoryEntry = (action: any) => {
+  const timestamp = new Date();
+  const id = `${timestamp.getTime()}-${Math.random().toString(36).slice(2, 8)}`;
+  const description = action?.description
+    || (action?.type === 'adjustment' ? 'Adjustment changed' : 'Action performed');
+
+  return {
+    id,
+    timestamp,
+    description,
+    ...action,
+  };
+};
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
 
@@ -103,23 +117,29 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setState(prev => ({ ...prev, selectedLayerId: id }));
   };
 
-  const updateAdjustments = (adjustments: Partial<Adjustments>) => {
+  const updateAdjustments = (adjustments: Partial<Adjustments>, options?: { recordHistory?: boolean }) => {
     setState(prev => ({
       ...prev,
       adjustments: { ...prev.adjustments, ...adjustments },
     }));
-    addToHistory({ type: 'adjustment', changes: adjustments }); // Log changes
+    if (options?.recordHistory !== false) {
+      addToHistory({
+        type: 'adjustment',
+        changes: adjustments,
+        description: `Adjusted ${Object.keys(adjustments).join(', ')}`,
+      });
+    }
   };
 
   const resetAdjustments = () => {
     setState(prev => ({ ...prev, adjustments: { ...defaultAdjustments } }));
-    addToHistory({ type: 'resetAdjustments' }); // Log reset
+    addToHistory({ type: 'adjustment', description: 'Reset adjustments' });
   };
 
   const addToHistory = (action: any) => {
     setState(prev => {
       const newHistory = prev.historyStack.slice(0, prev.historyIndex + 1); // Clear redo stack
-      newHistory.push(action);
+      newHistory.push(createHistoryEntry(action));
       return {
         ...prev,
         historyStack: newHistory,

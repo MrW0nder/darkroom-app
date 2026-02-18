@@ -29,7 +29,7 @@ class AutomationTemplate(BaseModel):
 async def create_workflow(workflow: Workflow):
     """Create automation workflow"""
     workflow.id = f"workflow_{hash(workflow.name)}"
-    return {"status": "created", "workflow": workflow.dict()}
+    return {"status": "created", "workflow": workflow.model_dump()}
 
 @router.get("/workflows")
 async def list_workflows() -> List[Workflow]:

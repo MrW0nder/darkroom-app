@@ -30,7 +30,7 @@ app.commandLine.appendSwitch('proxy-server', 'direct://');
 function checkDevUrl(url, timeout = 1000) {
   return new Promise((resolve) => {
     const req = http.get(url, { timeout }, (res) => {
-      const ok = res.statusCode >= 200 && res.statusCode < 400;
+      const ok = (res.statusCode >= 200 && res.statusCode < 400) || res.statusCode === 404;
       res.resume();
       resolve(ok);
     });
@@ -95,7 +95,9 @@ async function createWindow() {
       console.log(`DEV_SERVER_URL set, skipping probe and loading: ${forcedDevUrl}`);
       try {
         await win.loadURL(forcedDevUrl);
-        win.webContents.openDevTools();
+        if (process.env.ELECTRON_OPEN_DEVTOOLS === '1') {
+          win.webContents.openDevTools();
+        }
         console.log(`Loaded dev URL: ${forcedDevUrl}`);
         win.once('ready-to-show', () => win.show());
         return;
@@ -109,7 +111,9 @@ async function createWindow() {
     if (devUrl) {
       try {
         await win.loadURL(devUrl);
-        win.webContents.openDevTools();
+        if (process.env.ELECTRON_OPEN_DEVTOOLS === '1') {
+          win.webContents.openDevTools();
+        }
         console.log(`Loaded dev URL: ${devUrl}`);
       } catch (err) {
         console.error('Failed to load dev URL after detection, falling back to built index:', err);
@@ -120,7 +124,9 @@ async function createWindow() {
       console.log(`Attempting final direct load to ${defaultDevUrl} as a last-ditch workaround`);
       try {
         await win.loadURL(defaultDevUrl);
-        win.webContents.openDevTools();
+        if (process.env.ELECTRON_OPEN_DEVTOOLS === '1') {
+          win.webContents.openDevTools();
+        }
         console.log(`Loaded dev URL (direct): ${defaultDevUrl}`);
       } catch (err) {
         console.error('Failed direct dev URL load, falling back to built index:', err);
@@ -131,7 +137,15 @@ async function createWindow() {
     loadBuiltIndex(win);
   }
 
-  win.once('ready-to-show', () => win.show());
+  const showWindow = () => {
+    if (!win.isVisible()) {
+      win.show();
+    }
+  };
+
+  win.once('ready-to-show', showWindow);
+  win.webContents.on('did-finish-load', showWindow);
+  setTimeout(showWindow, 3000);
   win.on('closed', () => {});
 }
 
@@ -157,7 +171,16 @@ function loadBuiltIndex(win) {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', () => {});
+  app.on('second-instance', () => {
+    const existing = BrowserWindow.getAllWindows()[0];
+    if (existing) {
+      if (existing.isMinimized()) existing.restore();
+      existing.show();
+      existing.focus();
+    } else {
+      createWindow();
+    }
+  });
 
   app.whenReady().then(createWindow);
 

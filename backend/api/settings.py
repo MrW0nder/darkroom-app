@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import json
 
-router = APIRouter()
+router = APIRouter(prefix="/api", tags=["settings"])
 
 class UserSettings(BaseModel):
     theme: str = "dark"
@@ -40,31 +40,31 @@ settings_store: Dict[str, Dict[str, Any]] = {}
 async def get_user_settings(user_id: str = "default"):
     """Get user settings"""
     if user_id not in settings_store:
-        settings_store[user_id] = UserSettings().dict()
+        settings_store[user_id] = UserSettings().model_dump()
     return settings_store[user_id]
 
 @router.put("/settings/user")
 async def update_user_settings(settings: UserSettings, user_id: str = "default"):
     """Update user settings"""
-    settings_store[user_id] = settings.dict()
+    settings_store[user_id] = settings.model_dump()
     return {"status": "success", "settings": settings_store[user_id]}
 
 @router.get("/settings/app")
 async def get_app_config():
     """Get application configuration"""
-    return AppConfig().dict()
+    return AppConfig().model_dump()
 
 @router.post("/settings/reset")
 async def reset_settings(user_id: str = "default"):
     """Reset user settings to defaults"""
-    settings_store[user_id] = UserSettings().dict()
+    settings_store[user_id] = UserSettings().model_dump()
     return {"status": "success", "message": "Settings reset to defaults"}
 
 @router.post("/settings/export")
 async def export_settings(user_id: str = "default"):
     """Export user settings as JSON"""
     if user_id not in settings_store:
-        settings_store[user_id] = UserSettings().dict()
+        settings_store[user_id] = UserSettings().model_dump()
     return {"settings": settings_store[user_id]}
 
 @router.post("/settings/import")
@@ -72,7 +72,7 @@ async def import_settings(settings: Dict[str, Any], user_id: str = "default"):
     """Import user settings from JSON"""
     try:
         validated_settings = UserSettings(**settings)
-        settings_store[user_id] = validated_settings.dict()
+        settings_store[user_id] = validated_settings.model_dump()
         return {"status": "success", "message": "Settings imported successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid settings: {str(e)}")

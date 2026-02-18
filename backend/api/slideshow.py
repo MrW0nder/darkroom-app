@@ -4,7 +4,7 @@ from typing import List, Optional
 import os
 import json
 
-router = APIRouter()
+router = APIRouter(prefix="/api/slideshow", tags=["slideshow"])
 
 class SlideshowSettings(BaseModel):
     images: List[str]
@@ -29,7 +29,7 @@ async def create_slideshow(settings: SlideshowSettings):
         "slideshow_id": "slideshow_001",
         "images_count": len(settings.images),
         "total_duration": len(settings.images) * settings.duration,
-        "settings": settings.dict()
+        "settings": settings.model_dump()
     }
 
 @router.post("/preview")

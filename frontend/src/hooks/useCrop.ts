@@ -4,6 +4,8 @@
  */
 import { useState, useCallback } from 'react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface CropRect {
   x: number;
   y: number;
@@ -38,7 +40,7 @@ export const useCrop = (layerId: number): UseCropReturn => {
       try {
         // Apply rotation first if needed
         if (angle !== 0) {
-          const rotateResponse = await fetch('http://127.0.0.1:8000/api/crop/rotate', {
+          const rotateResponse = await fetch(`${API_URL}/api/crop/rotate`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -56,7 +58,7 @@ export const useCrop = (layerId: number): UseCropReturn => {
         }
 
         // Apply crop
-        const cropResponse = await fetch('http://127.0.0.1:8000/api/crop/apply', {
+        const cropResponse = await fetch(`${API_URL}/api/crop/apply`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -75,8 +77,7 @@ export const useCrop = (layerId: number): UseCropReturn => {
           throw new Error(data.detail || 'Crop failed');
         }
 
-        const result = await cropResponse.json();
-        console.log('Crop applied successfully:', result);
+        await cropResponse.json();
         
         // Reset state
         setCropRect(null);

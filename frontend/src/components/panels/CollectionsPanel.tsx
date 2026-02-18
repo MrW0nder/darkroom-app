@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Folder, Star, Tag, Flag, Plus, Trash2, Settings } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface Collection {
   id: string;
   name: string;
@@ -43,7 +45,7 @@ export const CollectionsPanel: React.FC = () => {
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch('/api/collections/collections');
+      const response = await fetch(`${API_URL}/api/collections/collections`);
       const data = await response.json();
       setCollections(data.collections || []);
     } catch (error) {
@@ -55,7 +57,7 @@ export const CollectionsPanel: React.FC = () => {
     if (!newCollectionName.trim()) return;
 
     try {
-      const response = await fetch('/api/collections/collections', {
+      const response = await fetch(`${API_URL}/api/collections/collections`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +78,7 @@ export const CollectionsPanel: React.FC = () => {
 
   const deleteCollection = async (id: string) => {
     try {
-      await fetch(`/api/collections/collections/${id}`, {
+      await fetch(`${API_URL}/api/collections/collections/${id}`, {
         method: 'DELETE'
       });
       setCollections(collections.filter(c => c.id !== id));
@@ -90,7 +92,7 @@ export const CollectionsPanel: React.FC = () => {
 
   const updateImageMetadata = async () => {
     try {
-      await fetch('/api/collections/images/metadata', {
+      await fetch(`${API_URL}/api/collections/images/metadata`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

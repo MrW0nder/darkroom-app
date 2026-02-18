@@ -5,6 +5,8 @@ import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Circle, Move, Paintbrush, Sparkles } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 type FilterType = 'radial' | 'gradient' | 'brush';
 
 export const LocalAdjustmentsPanel: React.FC = () => {
@@ -78,14 +80,13 @@ export const LocalAdjustmentsPanel: React.FC = () => {
         };
       }
 
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
 
-      const data = await response.json();
-      console.log('Local adjustment applied:', data);
+      await response.json();
     } catch (error) {
       console.error('Error applying local adjustment:', error);
     } finally {

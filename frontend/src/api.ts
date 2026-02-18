@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://127.0.0.1:8000';
+
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api', // Backend API base URL
+    baseURL: `${API_URL}/api`, // Backend API base URL
     timeout: 5000, // Request timeout in milliseconds
 });
 

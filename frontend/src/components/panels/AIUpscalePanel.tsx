@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Maximize2, Sparkles, Loader2 } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface AIUpscalePanelProps {
   imageUrl?: string;
   originalWidth?: number;
@@ -33,7 +35,7 @@ const AIUpscalePanel: React.FC<AIUpscalePanelProps> = ({
     
     setProcessing(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/upscale', {
+      const response = await fetch(`${API_URL}/api/ai/upscale`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

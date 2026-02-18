@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Wand2, Target, Zap } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface AIPresetsPanelProps {
   layerId: number | null;
   onApply: () => void;
@@ -25,7 +27,7 @@ const AIPresetsPanel: React.FC<AIPresetsPanelProps> = ({ layerId, onApply }) => 
     
     setAnalyzing(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/analyze-scene', {
+      const response = await fetch(`${API_URL}/api/ai/analyze-scene`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ layer_id: layerId })
@@ -37,7 +39,7 @@ const AIPresetsPanel: React.FC<AIPresetsPanelProps> = ({ layerId, onApply }) => 
         
         // Get detailed suggestions
         const suggestionsResponse = await fetch(
-          `http://127.0.0.1:8000/api/ai/suggest-preset?layer_id=${layerId}`,
+          `${API_URL}/api/ai/suggest-preset?layer_id=${layerId}`,
           { method: 'POST' }
         );
         const suggestionsData = await suggestionsResponse.json();
@@ -55,7 +57,7 @@ const AIPresetsPanel: React.FC<AIPresetsPanelProps> = ({ layerId, onApply }) => 
     
     setApplying(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/apply-smart-preset', {
+      const response = await fetch(`${API_URL}/api/ai/apply-smart-preset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -80,7 +82,7 @@ const AIPresetsPanel: React.FC<AIPresetsPanelProps> = ({ layerId, onApply }) => 
     
     setApplying(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/auto-enhance', {
+      const response = await fetch(`${API_URL}/api/ai/auto-enhance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

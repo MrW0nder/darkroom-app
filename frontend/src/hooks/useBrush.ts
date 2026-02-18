@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface Stroke {
   points: number[];
   color: string;
@@ -107,7 +109,7 @@ export const useBrush = (layerId: number) => {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/brush/save', {
+      const response = await fetch(`${API_URL}/api/brush/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,8 +130,7 @@ export const useBrush = (layerId: number) => {
         throw new Error(error.detail || 'Failed to save strokes');
       }
 
-      const result = await response.json();
-      console.log('Brush strokes saved:', result);
+      await response.json();
       return true;
     } catch (error) {
       console.error('Error saving brush strokes:', error);

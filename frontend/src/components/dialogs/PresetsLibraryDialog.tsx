@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Search, Star, Tag, DollarSign, Filter } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface PresetMetadata {
   id: string;
   name: string;
@@ -49,7 +51,7 @@ export const PresetsLibraryDialog: React.FC<PresetsLibraryDialogProps> = ({
 
   const fetchUserPresets = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/presets-library/presets/my-library');
+      const response = await fetch(`${API_URL}/api/presets-library/presets/my-library`);
       const data = await response.json();
       setUserPresets(data.presets || []);
     } catch (error) {
@@ -65,7 +67,7 @@ export const PresetsLibraryDialog: React.FC<PresetsLibraryDialogProps> = ({
       if (showPremiumOnly) params.append('premium_only', 'true');
 
       const response = await fetch(
-        `http://localhost:8000/api/presets-library/presets/marketplace?${params}`
+        `${API_URL}/api/presets-library/presets/marketplace?${params}`
       );
       const data = await response.json();
       setMarketplacePresets(data.presets || []);
@@ -76,7 +78,7 @@ export const PresetsLibraryDialog: React.FC<PresetsLibraryDialogProps> = ({
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/presets-library/categories');
+      const response = await fetch(`${API_URL}/api/presets-library/categories`);
       const data = await response.json();
       setCategories(data.categories || []);
     } catch (error) {
@@ -86,7 +88,7 @@ export const PresetsLibraryDialog: React.FC<PresetsLibraryDialogProps> = ({
 
   const handlePurchase = async (presetId: string) => {
     try {
-      await fetch(`http://localhost:8000/api/presets-library/presets/${presetId}/purchase`, {
+      await fetch(`${API_URL}/api/presets-library/presets/${presetId}/purchase`, {
         method: 'POST'
       });
       fetchUserPresets();

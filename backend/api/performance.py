@@ -54,7 +54,7 @@ async def clear_cache(cache_type: str = "all"):
 @router.post("/cache/settings")
 async def update_cache_settings(settings: CacheSettings):
     """Update cache settings"""
-    return {"status": "updated", "settings": settings.dict()}
+    return {"status": "updated", "settings": settings.model_dump()}
 
 @router.post("/proxy/generate")
 async def generate_proxies(file_ids: List[str]):
@@ -68,12 +68,12 @@ async def generate_proxies(file_ids: List[str]):
 @router.post("/proxy/settings")
 async def update_proxy_settings(settings: ProxySettings):
     """Update proxy settings"""
-    return {"status": "updated", "settings": settings.dict()}
+    return {"status": "updated", "settings": settings.model_dump()}
 
 @router.post("/hardware/settings")
 async def update_hardware_settings(settings: HardwareSettings):
     """Update hardware acceleration settings"""
-    return {"status": "updated", "settings": settings.dict()}
+    return {"status": "updated", "settings": settings.model_dump()}
 
 @router.get("/hardware/info")
 async def get_hardware_info():

@@ -14,7 +14,6 @@ export const VideoEditingDialog: React.FC<{ onClose: () => void }> = ({ onClose 
 
   const handleExport = async () => {
     // Video export logic
-    console.log('Exporting video...');
   };
 
   return (

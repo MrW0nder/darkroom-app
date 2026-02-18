@@ -16,7 +16,6 @@ export const TimelapseDialog: React.FC<TimelapseDialogProps> = ({ open, onClose 
 
   const handleCreate = async () => {
     // Call API to create timelapse
-    console.log('Creating timelapse with:', { frameRate, codec, transition, deflicker, outputFormat });
     onClose();
   };
 

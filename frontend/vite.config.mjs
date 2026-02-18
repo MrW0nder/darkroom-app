@@ -2,11 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-export default defineConfig({
-  base: './',
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? './' : '/',
   plugins: [react()],
-  root: '.', // Root at project folder
-  publicDir: 'public', // Static assets
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
@@ -14,8 +12,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      input: 'public/index.html'
-    }
+    emptyOutDir: true
   }
-});
+}));

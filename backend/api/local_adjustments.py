@@ -4,7 +4,7 @@ from typing import Optional, List, Tuple
 import cv2
 import numpy as np
 
-router = APIRouter()
+router = APIRouter(prefix="/api/local-adjustments", tags=["local-adjustments"])
 
 class Point(BaseModel):
     x: float

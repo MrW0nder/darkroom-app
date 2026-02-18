@@ -4,7 +4,7 @@ App themes, workspace layouts, UI customization, performance tuning
 """
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 router = APIRouter(prefix="/api/polish", tags=["polish"])
 
@@ -17,7 +17,7 @@ class AppTheme(BaseModel):
 
 class WorkspaceLayout(BaseModel):
     name: str
-    panels: List[Dict[str, any]]
+    panels: List[Dict[str, Any]]
     toolbar_position: str
     sidebar_width: int
 

@@ -4,7 +4,7 @@ from typing import Optional
 import cv2
 import numpy as np
 
-router = APIRouter()
+router = APIRouter(prefix="/api/advanced-sharpening", tags=["advanced-sharpening"])
 
 class SharpeningRequest(BaseModel):
     image_path: str

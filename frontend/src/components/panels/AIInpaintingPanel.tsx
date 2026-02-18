@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Eraser, Wand2, Loader2, RotateCcw } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface AIInpaintingPanelProps {
   imageUrl?: string;
   onComplete?: (result: any) => void;
@@ -17,7 +19,7 @@ const AIInpaintingPanel: React.FC<AIInpaintingPanelProps> = ({ imageUrl, onCompl
     
     setProcessing(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/inpaint', {
+      const response = await fetch(`${API_URL}/api/ai/inpaint`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

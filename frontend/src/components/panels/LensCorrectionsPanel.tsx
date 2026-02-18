@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Camera, Aperture, CheckCircle } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 const LENS_PROFILES = [
   'Canon EF 50mm f/1.8',
   'Nikon AF-S 35mm f/1.8G',
@@ -25,7 +27,7 @@ export const LensCorrectionsPanel: React.FC = () => {
   const handleApplyCorrections = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/lens-corrections/correct', {
+      const response = await fetch(`${API_URL}/api/lens-corrections/correct`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -39,8 +41,7 @@ export const LensCorrectionsPanel: React.FC = () => {
         })
       });
       
-      const data = await response.json();
-      console.log('Lens corrections applied:', data);
+      await response.json();
     } catch (error) {
       console.error('Error applying lens corrections:', error);
     } finally {

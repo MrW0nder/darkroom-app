@@ -48,7 +48,7 @@ async def disconnect_provider(provider: str):
 @router.post("/configure")
 async def configure_sync(settings: SyncSettings):
     """Configure sync settings"""
-    return {"status": "configured", "settings": settings.dict()}
+    return {"status": "configured", "settings": settings.model_dump()}
 
 @router.get("/status/{provider}")
 async def get_sync_status(provider: str) -> SyncStatus:

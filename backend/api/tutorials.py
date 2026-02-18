@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Optional
 
-router = APIRouter()
+router = APIRouter(prefix="/api", tags=["tutorials"])
 
 class Tutorial(BaseModel):
     id: str

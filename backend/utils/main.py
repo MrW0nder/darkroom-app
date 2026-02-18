@@ -1,17 +1,11 @@
 import os
-import io
-import sys
 import logging
 from typing import Optional, List
-from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Depends
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from PIL import Image as PILImage, ImageDraw, ImageFont
-
-# Debugging code: Print the Python search path
-print("Python Search Path:", sys.path)
 
 from backend.db import get_db, engine, DATABASE_URL  # Import from db.py
 from backend.models import Base  # Ensure models are imported for table creation
@@ -25,7 +19,7 @@ APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
 
 # Configure basic logging
 LOG_LEVEL = os.environ.get("DARKROOM_LOG_LEVEL", "INFO").upper()
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s")
+logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("darkroom")
 
 app = FastAPI(title=APP_TITLE)
@@ -101,13 +95,13 @@ class LayerResponse(BaseModel):
     blend_mode: Optional[str]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 @app.post("/api/layers", response_model=dict)
 def create_layer(layer: LayerCreate, db: Session = Depends(get_db)):
     try:
-        new_layer = Layer(**layer.dict())
+        new_layer = Layer(**layer.model_dump())
         db.add(new_layer)
         db.commit()
         db.refresh(new_layer)
@@ -155,7 +149,7 @@ def update_layer(layer_id: int, layer: LayerCreate, db: Session = Depends(get_db
             logger.warning("Layer not found for update with ID: %s", layer_id)
             raise HTTPException(status_code=404, detail="Layer not found")
         
-        for field, value in layer.dict(exclude_unset=True).items():
+        for field, value in layer.model_dump(exclude_unset=True).items():
             setattr(existing_layer, field, value)
 
         db.commit()

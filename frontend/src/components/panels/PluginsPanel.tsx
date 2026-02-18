@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Download, Trash2, Power, Settings, Star } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface Plugin {
   id: string;
   name: string;
@@ -29,7 +31,7 @@ export const PluginsPanel: React.FC = () => {
 
   const fetchInstalledPlugins = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/plugins/installed');
+      const response = await fetch(`${API_URL}/api/plugins/installed`);
       const data = await response.json();
       setInstalledPlugins(data.plugins || []);
     } catch (error) {
@@ -39,7 +41,7 @@ export const PluginsPanel: React.FC = () => {
 
   const fetchMarketplacePlugins = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/plugins/marketplace');
+      const response = await fetch(`${API_URL}/api/plugins/marketplace`);
       const data = await response.json();
       setMarketplacePlugins(data.plugins || []);
     } catch (error) {
@@ -49,7 +51,7 @@ export const PluginsPanel: React.FC = () => {
 
   const handleInstall = async (pluginId: string) => {
     try {
-      await fetch(`http://localhost:8000/api/plugins/install/${pluginId}`, {
+      await fetch(`${API_URL}/api/plugins/install/${pluginId}`, {
         method: 'POST'
       });
       fetchInstalledPlugins();
@@ -61,7 +63,7 @@ export const PluginsPanel: React.FC = () => {
 
   const handleUninstall = async (pluginId: string) => {
     try {
-      await fetch(`http://localhost:8000/api/plugins/uninstall/${pluginId}`, {
+      await fetch(`${API_URL}/api/plugins/uninstall/${pluginId}`, {
         method: 'DELETE'
       });
       fetchInstalledPlugins();
@@ -73,7 +75,7 @@ export const PluginsPanel: React.FC = () => {
 
   const handleToggle = async (pluginId: string, enabled: boolean) => {
     try {
-      await fetch(`http://localhost:8000/api/plugins/toggle/${pluginId}?enabled=${!enabled}`, {
+      await fetch(`${API_URL}/api/plugins/toggle/${pluginId}?enabled=${!enabled}`, {
         method: 'PATCH'
       });
       fetchInstalledPlugins();

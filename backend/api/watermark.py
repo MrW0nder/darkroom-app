@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import io
 
-router = APIRouter()
+router = APIRouter(prefix="/api/watermark", tags=["watermark"])
 
 @router.post("/add-text")
 async def add_text_watermark(

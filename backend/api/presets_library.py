@@ -287,7 +287,7 @@ async def export_presets(preset_ids: List[str]):
     export_data = {
         "version": "1.0",
         "export_date": datetime.utcnow().isoformat() + "Z",
-        "presets": [p.dict() for p in presets_to_export]
+        "presets": [p.model_dump() for p in presets_to_export]
     }
     
     return {

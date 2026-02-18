@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 
-router = APIRouter()
+router = APIRouter(prefix="/api/collections", tags=["collections"])
 
 # In-memory storage (replace with database in production)
 collections_db = {}
@@ -57,11 +57,11 @@ async def create_collection(collection: Collection):
         collection.created_at = datetime.now()
         collection.updated_at = datetime.now()
         
-        collections_db[collection_id] = collection.dict()
+        collections_db[collection_id] = collection.model_dump()
         
         return {
             "status": "success",
-            "collection": collection.dict()
+            "collection": collection.model_dump()
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -100,8 +100,8 @@ async def update_collection(collection_id: str, collection: Collection):
     collection.updated_at = datetime.now()
     collection.created_at = collections_db[collection_id].get("created_at")
     
-    collections_db[collection_id] = collection.dict()
-    return {"status": "success", "collection": collection.dict()}
+    collections_db[collection_id] = collection.model_dump()
+    return {"status": "success", "collection": collection.model_dump()}
 
 @router.delete("/collections/{collection_id}")
 async def delete_collection(collection_id: str):
@@ -122,8 +122,8 @@ async def delete_collection(collection_id: str):
 async def update_image_metadata(metadata: ImageMetadata):
     """Update image metadata (rating, color label, flag, keywords)"""
     try:
-        images_db[metadata.id] = metadata.dict()
-        return {"status": "success", "metadata": metadata.dict()}
+        images_db[metadata.id] = metadata.model_dump()
+        return {"status": "success", "metadata": metadata.model_dump()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

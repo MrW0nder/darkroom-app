@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 type ShapeType = 'rectangle' | 'ellipse' | 'line' | 'arrow';
 
 interface TextState {
@@ -55,7 +57,7 @@ const useTextShapes = (layerId: number) => {
     setError(null);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/text/add', {
+      const response = await fetch(`${API_URL}/api/text/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,8 +80,7 @@ const useTextShapes = (layerId: number) => {
         throw new Error(errorData.detail || 'Failed to add text');
       }
 
-      const data = await response.json();
-      console.log('Text added successfully:', data);
+      await response.json();
       
       // Reset text state
       setText('');
@@ -100,7 +101,7 @@ const useTextShapes = (layerId: number) => {
     setError(null);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/shapes/add', {
+      const response = await fetch(`${API_URL}/api/shapes/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -124,8 +125,7 @@ const useTextShapes = (layerId: number) => {
         throw new Error(errorData.detail || 'Failed to add shape');
       }
 
-      const data = await response.json();
-      console.log('Shape added successfully:', data);
+      await response.json();
       
       return true;
     } catch (err) {

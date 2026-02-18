@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, Printer, Grid, Image as ImageIcon, Layout } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface AdvancedPrintDialogProps {
   onClose: () => void;
   imageFiles: File[];
@@ -31,7 +33,7 @@ const AdvancedPrintDialog: React.FC<AdvancedPrintDialogProps> = ({ onClose, imag
       const formData = new FormData();
       imageFiles.forEach(file => formData.append('images', file));
 
-      const response = await fetch('/api/print/layout', {
+      const response = await fetch(`${API_URL}/api/print/layout`, {
         method: 'POST',
         body: JSON.stringify({
           layout_type: layout,
@@ -44,8 +46,7 @@ const AdvancedPrintDialog: React.FC<AdvancedPrintDialogProps> = ({ onClose, imag
         headers: { 'Content-Type': 'application/json' },
       });
 
-      const data = await response.json();
-      console.log('Print layout created:', data);
+      await response.json();
       onClose();
     } catch (error) {
       console.error('Print error:', error);

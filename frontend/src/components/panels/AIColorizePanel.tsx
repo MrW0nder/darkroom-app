@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Palette, Sparkles, Image as ImageIcon } from 'lucide-react';
 
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+
 interface AIColorizePanelProps {
   layerId: number | null;
   onApply: () => void;
@@ -23,7 +25,7 @@ const AIColorizePanel: React.FC<AIColorizePanelProps> = ({ layerId, onApply }) =
     
     setColorizing(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/ai/colorize', {
+      const response = await fetch(`${API_URL}/api/ai/colorize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
