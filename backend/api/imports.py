@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from backend.db import STORAGE_DIR, get_db  # Ensure these imports match your structure
 from backend.models.models import Image as ImageModel
+from backend.models.projects import Project
 from backend.models.layers import Layer  # Import Layer model
 from pathlib import Path
 import uuid
@@ -17,6 +18,7 @@ router = APIRouter(prefix="/api", tags=["imports"])
 async def import_image(
     file: UploadFile = File(...),
     project_id: int = 0,
+    set_cover: bool = False,
     db: Session = Depends(get_db)
 ):
     if not file:
@@ -56,40 +58,56 @@ async def import_image(
         db.refresh(image_record)
         logger.debug(f"Created image record with ID: {image_record.id}")
 
-        # Insert into `layers` table
-        layer_record = Layer(
-            project_id=project_id,  # Use the provided project_id
-            type="image",  # Always "image" for now
-            content=str(save_path.resolve()),  # Use the file path of the image as content
-            z_index=0,  # Default z-index
-            width=width,
-            height=height,
-            blend_mode="normal",  # Default blend mode
-            opacity=100,
-            visible=True,
-            locked=False,
-            x=0,
-            y=0,
-        )
-        db.add(layer_record)
-        db.commit()
-        db.refresh(layer_record)
-        logger.info(f"Created layer record with ID: {layer_record.id} for project {project_id}")
+        layer_record = None
+        cover_image_path = None
+        if set_cover and project_id:
+            project = db.query(Project).filter(Project.id == project_id).first()
+            if project:
+                cover_image_path = str(save_path.relative_to(STORAGE_DIR).as_posix())
+                project.cover_image = cover_image_path
+                project.cover_original_width = width
+                project.cover_original_height = height
+                project.cover_crop_x = 0
+                project.cover_crop_y = 0
+                project.cover_crop_width = width
+                project.cover_crop_height = height
+                db.commit()
+        else:
+            # Insert into `layers` table
+            layer_record = Layer(
+                project_id=project_id,  # Use the provided project_id
+                type="image",  # Always "image" for now
+                content=str(save_path.resolve()),  # Use the file path of the image as content
+                z_index=0,  # Default z-index
+                width=width,
+                height=height,
+                blend_mode="normal",  # Default blend mode
+                opacity=100,
+                visible=True,
+                locked=False,
+                x=0,
+                y=0,
+            )
+            db.add(layer_record)
+            db.commit()
+            db.refresh(layer_record)
+            logger.info(f"Created layer record with ID: {layer_record.id} for project {project_id}")
 
         # Return the combined response for the uploaded image using Layer data
         return {
-            "id": layer_record.id,
-            "project_id": layer_record.project_id,
+            "id": layer_record.id if layer_record else None,
+            "project_id": project_id,
             "filename": image_record.filename,
             "filepath": image_record.filepath,
-            "content": layer_record.content,
-            "width": layer_record.width,
-            "height": layer_record.height,
+            "content": layer_record.content if layer_record else str(save_path.resolve()),
+            "width": layer_record.width if layer_record else width,
+            "height": layer_record.height if layer_record else height,
             "format": image_record.format,
-            "type": layer_record.type,
-            "z_index": layer_record.z_index,
-            "opacity": layer_record.opacity,
-            "visible": layer_record.visible,
+            "type": layer_record.type if layer_record else "cover",
+            "z_index": layer_record.z_index if layer_record else 0,
+            "opacity": layer_record.opacity if layer_record else 100,
+            "visible": layer_record.visible if layer_record else True,
+            "cover_image": cover_image_path,
         }
     except UnidentifiedImageError:
         logger.error(f"Invalid image format: {file.filename}")

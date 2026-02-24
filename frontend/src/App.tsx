@@ -11,8 +11,24 @@ type View = 'library' | 'editor';
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('library');
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [lastOpenedProjectId, setLastOpenedProjectId] = useState<number | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
+  const [firstFilteredProjectId, setFirstFilteredProjectId] = useState<number | null>(null);
+  const [currentProjectTitle, setCurrentProjectTitle] = useState<string>('');
+
+  // Fetch project title when selectedProjectId changes
+  useEffect(() => {
+    if (selectedProjectId) {
+      const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
+      fetch(`${API_URL}/api/projects/${selectedProjectId}`)
+        .then(res => res.json())
+        .then(project => setCurrentProjectTitle(project.name || ''))
+        .catch(err => console.error('Failed to fetch project title:', err));
+    } else {
+      setCurrentProjectTitle('');
+    }
+  }, [selectedProjectId]);
 
   // Read projectId from URL query parameters on mount
   useEffect(() => {
@@ -23,6 +39,7 @@ export default function App() {
       if (!isNaN(projectId)) {
         console.log('Opening project from URL:', projectId);
         setSelectedProjectId(projectId);
+        setLastOpenedProjectId(projectId);
         setCurrentView('editor');
       }
     }
@@ -30,12 +47,26 @@ export default function App() {
 
   const openProject = (projectId: number) => {
     setSelectedProjectId(projectId);
+    setLastOpenedProjectId(projectId);
     setCurrentView('editor');
   };
 
   const closeProject = () => {
-    setSelectedProjectId(null);
     setCurrentView('library');
+  };
+
+  const openEditor = () => {
+    // If there's a last opened project, open it
+    if (lastOpenedProjectId) {
+      setSelectedProjectId(lastOpenedProjectId);
+      setCurrentView('editor');
+    } 
+    // Otherwise, open the first filtered project from library
+    else if (firstFilteredProjectId) {
+      setSelectedProjectId(firstFilteredProjectId);
+      setLastOpenedProjectId(firstFilteredProjectId);
+      setCurrentView('editor');
+    }
   };
 
   return (
@@ -63,14 +94,11 @@ export default function App() {
               Library
             </button>
             <button
-              onClick={() => setCurrentView('editor')}
-              disabled={!selectedProjectId}
+              onClick={() => openEditor()}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                 currentView === 'editor' && selectedProjectId
                   ? 'bg-blue-600 text-white'
-                  : selectedProjectId
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-800'
-                    : 'text-gray-600 cursor-not-allowed'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
               }`}
             >
               Editor
@@ -80,8 +108,8 @@ export default function App() {
           {/* Right - Actions based on view */}
           {currentView === 'editor' && selectedProjectId ? (
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">
-                Project #{selectedProjectId}
+              <span className="text-sm text-gray-400 font-medium">
+                {currentProjectTitle || 'Untitled Project'}
               </span>
               <div className="flex items-center space-x-2 border-l border-gray-700 pl-4">
                 <button className="px-3 py-1 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded transition-colors">
@@ -119,6 +147,7 @@ export default function App() {
               onCreateDialogChange={setShowCreateDialog}
               newProjectName={newProjectName}
               onNewProjectNameChange={setNewProjectName}
+              onFirstFilteredProjectChange={setFirstFilteredProjectId}
             />
           </>
         ) : selectedProjectId ? (

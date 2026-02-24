@@ -4,50 +4,30 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Stage, Layer, Image as KonvaImage } from 'react-konva';
-import { useEditor } from '../../contexts/EditorContext.js'; // Include .js extension for node16 resolution
+import { useEditor } from '../../contexts/EditorContext.js';
 
 const API_URL = (import.meta as any).env.VITE_API_URL || 'http://127.0.0.1:8000';
 
-const resolveContentUrl = (content: string | null) => {
-  if (!content) {
-    console.warn('resolveContentUrl called with empty content');
-    return '';
-  }
-  if (content.startsWith('data:')) {
-    console.debug('Using data URL for image');
-    return content;
-  }
-  if (content.startsWith('http://') || content.startsWith('https://')) {
-    console.debug(`Using absolute HTTP URL: ${content}`);
-    return content;
-  }
-  if (content.startsWith('/storage/')) {
-    const url = `${API_URL}${content}`;
-    console.debug(`Resolved /storage/ path to: ${url}`);
-    return url;
-  }
-  // Extract filename from path
+function resolveContentUrl(content: string | null) {
+  if (!content) return '';
+  if (content.startsWith('data:')) return content;
+  if (content.startsWith('http://') || content.startsWith('https://')) return content;
+  if (content.startsWith('/storage/')) return `${API_URL}${content}`;
   const filename = content.split(/[/\\]/).pop();
-  if (!filename) {
-    console.error(`Could not extract filename from content: ${content}`);
-    return '';
-  }
-  const url = `${API_URL}/storage/originals/${filename}`;
-  console.debug(`Resolved absolute path to: ${url}`);
-  return url;
-};
+  if (!filename) return '';
+  return `${API_URL}/storage/originals/${filename}`;
+}
 
-// Define the Layer type dynamically or adjust it to match the actual `state.layers`
 interface Layer {
   id: number;
-  content: string | null; // Allow null for content
+  content: string | null;
   visible: boolean;
   z_index: number;
   x: number;
   y: number;
-  width?: number | null; // Changed to allow null
-  height?: number | null; // Changed to allow null
-  opacity?: number | undefined;
+  width?: number | null;
+  height?: number | null;
+  opacity?: number;
   locked: boolean;
 }
 
@@ -57,314 +37,163 @@ interface MainCanvasProps {
   zoom?: number;
   recenterToken?: number;
   layerAdjustments?: Record<number, any>;
+  isSidebarCollapsed?: boolean;
 }
 
-const MainCanvas: React.FC<MainCanvasProps> = ({ width = 800, height = 600, zoom = 100, recenterToken = 0, layerAdjustments = {} }) => {
+// --- MainCanvas: always keep crosshairs at true canvas center ---
+const MainCanvas: React.FC<MainCanvasProps> = ({ zoom = 100, recenterToken = 0, layerAdjustments = {}, isSidebarCollapsed }) => {
   const { state } = useEditor();
   const [images, setImages] = useState<Map<number, HTMLImageElement>>(new Map());
   const [processedImages, setProcessedImages] = useState<Map<number, HTMLCanvasElement>>(new Map());
-  const [layerPositions, setLayerPositions] = useState<Map<number, { x: number; y: number }>>(new Map());
-  const [screenAnchor, setScreenAnchor] = useState<{ x: number; y: number } | null>(null);
+  // Offset from true canvas center (crosshairs) for each layer
+  const [layerOffsets, setLayerOffsets] = useState<Map<number, { dx: number; dy: number }>>(new Map());
+  const [canvasZoom, setCanvasZoom] = useState(zoom);
+  const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<any>(null);
-  // Stage is always container-sized; images are scaled to fit within it
-  const stageWidth = width;
-  const stageHeight = height;
-  const scale = Math.max(0.25, Math.min(4, zoom / 100));
+
+  // Layout constants
+  const TOOLBAR_WIDTH = 64;
+  const SIDEBAR_WIDTH = 320;
+  const sidebarActualWidth = (typeof isSidebarCollapsed === 'boolean' && isSidebarCollapsed) ? 0 : SIDEBAR_WIDTH;
+  // The visible area (viewport) is always centered in the canvas
+  const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
+  const stageWidth = containerSize.width * 3;
+  const stageHeight = containerSize.height * 3;
+  const visibleWidth = containerSize.width - sidebarActualWidth;
+  const visibleHeight = containerSize.height;
+  const visibleLeft = (stageWidth - visibleWidth) / 2;
+  const visibleTop = (stageHeight - visibleHeight) / 2;
+  // The true canvas center (crosshairs) is always at (stageWidth/2, stageHeight/2)
+  const canvasCenterX = stageWidth / 2;
+  const canvasCenterY = stageHeight / 2;
+  const scale = Math.max(0.25, Math.min(4, canvasZoom / 100));
+
+  // --- Layer/image selection ---
   const selectedLayer = state.layers.find((layer) => layer.id === state.selectedLayerId) || null;
   const primaryLayer = selectedLayer
     ? (selectedLayer.visible === false ? null : selectedLayer)
     : (state.layers.find((layer) => layer.visible) || state.layers[0] || null);
   const primaryImage = primaryLayer ? images.get(primaryLayer.id) : null;
 
-  let imageCenterX = stageWidth / 2;
-  let imageCenterY = stageHeight / 2;
-
+  // --- Image fitting: always center under crosshairs ---
+  let displayWidth = stageWidth, displayHeight = stageHeight, imgWidth = 0, imgHeight = 0;
   if (primaryLayer && primaryImage) {
-    const imgWidth = primaryImage.width;
-    const imgHeight = primaryImage.height;
+    imgWidth = primaryImage.width;
+    imgHeight = primaryImage.height;
     const imgAspect = imgWidth / imgHeight;
-    const stageAspect = stageWidth / stageHeight;
-    let displayWidth = stageWidth;
-    let displayHeight = stageHeight;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    if (imgAspect > stageAspect) {
-      displayHeight = stageWidth / imgAspect;
-      offsetY = (stageHeight - displayHeight) / 2;
+    const areaAspect = visibleWidth / visibleHeight;
+    let fitWidth = visibleWidth, fitHeight = visibleHeight;
+    if (imgAspect > areaAspect) {
+      displayWidth = fitWidth;
+      displayHeight = displayWidth / imgAspect;
     } else {
-      displayWidth = stageHeight * imgAspect;
-      offsetX = (stageWidth - displayWidth) / 2;
+      displayHeight = fitHeight;
+      displayWidth = displayHeight * imgAspect;
     }
-
-    const storedPosition = layerPositions.get(primaryLayer.id);
-    const posX = storedPosition?.x ?? offsetX;
-    const posY = storedPosition?.y ?? offsetY;
-    imageCenterX = posX + displayWidth / 2;
-    imageCenterY = posY + displayHeight / 2;
   }
 
-  const anchorX = screenAnchor?.x ?? stageWidth / 2;
-  const anchorY = screenAnchor?.y ?? stageHeight / 2;
-  const stageOffsetX = anchorX - imageCenterX * scale;
-  const stageOffsetY = anchorY - imageCenterY * scale;
+  // --- Drag offset from canvas center ---
+  let dx = 0, dy = 0;
+  if (primaryLayer && layerOffsets.has(primaryLayer.id)) {
+    const offset = layerOffsets.get(primaryLayer.id)!;
+    dx = offset.dx;
+    dy = offset.dy;
+  }
+  // Image top-left: always relative to true canvas center
+  const imageX = canvasCenterX + dx - displayWidth / 2;
+  const imageY = canvasCenterY + dy - displayHeight / 2;
+
+  // --- Responsive resize observer ---
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerSize({ width: rect.width, height: rect.height });
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
-    if (!screenAnchor) {
-      setScreenAnchor({ x: stageWidth / 2, y: stageHeight / 2 });
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setContainerSize({ width: rect.width, height: rect.height });
     }
-  }, [screenAnchor, stageWidth, stageHeight]);
+  }, [isSidebarCollapsed, primaryLayer]);
 
+  // --- Reset offsets on recenter ---
   useEffect(() => {
-    setLayerPositions(new Map());
-    setScreenAnchor({ x: stageWidth / 2, y: stageHeight / 2 });
-  }, [recenterToken, stageWidth, stageHeight]);
+    setLayerOffsets(new Map());
+    setCanvasZoom(zoom);
+  }, [recenterToken, zoom]);
 
-  // Load image for the primary layer
+  // --- Load image for primary layer ---
   useEffect(() => {
     const loadImages = async () => {
       const newImages = new Map<number, HTMLImageElement>();
-
       if (primaryLayer && primaryLayer.content !== null) {
         const img = new window.Image();
         img.crossOrigin = 'anonymous';
-
-        // Handle both file paths and data URLs
-        const imageUrl = resolveContentUrl(primaryLayer.content);
-        console.log(`Loading image from URL: ${imageUrl}`);
-        img.src = imageUrl;
-
+        img.src = resolveContentUrl(primaryLayer.content);
         await new Promise<void>((resolve) => {
-          let loaded = false;
-          
-          img.onload = () => {
-            console.log(`Successfully loaded image for layer ${primaryLayer.id}: ${img.width}x${img.height}`);
-            loaded = true;
-            newImages.set(primaryLayer.id, img);
-            resolve();
-          };
-          
-          img.onerror = () => {
-            console.error(`Failed to load image for layer ${primaryLayer.id} from URL: ${imageUrl}`);
-            resolve();
-          };
-
-          // Timeout failsafe (10 seconds)
-          setTimeout(() => {
-            if (!loaded) {
-              console.warn(`Image load timeout for layer ${primaryLayer.id}`);
-              resolve();
-            }
-          }, 10000);
+          img.onload = () => { newImages.set(primaryLayer.id, img); resolve(); };
+          img.onerror = () => resolve();
+          setTimeout(resolve, 10000);
         });
       }
-
       setImages(newImages);
     };
-
     loadImages();
   }, [primaryLayer]);
 
-  // Apply adjustments to images using canvas
+  // --- Process images (adjustments) ---
   useEffect(() => {
-    // Use shorter debounce for faster response
     const timeoutId = setTimeout(() => {
-      const processImages = () => {
-        const processed = new Map<number, HTMLCanvasElement>();
-
-        images.forEach((img, layerId) => {
-          // Get adjustments for this specific layer, or use defaults
-          const adjustments = layerAdjustments[layerId] || {
-            brightness: 0,
-            contrast: 0,
-            saturation: 0,
-            exposure: 0,
-            highlights: 0,
-            shadows: 0,
-            sharpness: 1.0,
-          };
-          // Create canvas at potentially reduced size for faster processing
-          const maxDimension = 2048; // Process at max 2048px for performance
-          const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
-          const processWidth = Math.floor(img.width * scale);
-          const processHeight = Math.floor(img.height * scale);
-          
-          const canvas = document.createElement('canvas');
-          canvas.width = processWidth;
-          canvas.height = processHeight;
-          const ctx = canvas.getContext('2d', { willReadFrequently: true });
-          
-          if (ctx) {
-            // Build CSS filter string from adjustments
-            const filters: string[] = [];
-            
-            // Exposure: range is -3 to 3 (EV stops), scale to percentage
-            // Each stop doubles or halves brightness (exponential scale)
-            const exposureFactor = Math.pow(2, adjustments.exposure) * 100;
-            
-            // Brightness: linear adjustment, range -100 to 100
-            const brightnessFactor = 100 + adjustments.brightness;
-            
-            // Combine both - exposure is applied first (exponential), then brightness (linear)
-            const totalBrightness = (exposureFactor * brightnessFactor) / 100;
-            filters.push(`brightness(${totalBrightness}%)`);
-            
-            // Contrast: default is 0, range typically -100 to 100, CSS expects 0% to 200%
-            const contrast = 100 + adjustments.contrast;
-            filters.push(`contrast(${contrast}%)`);
-            
-            // Saturation: default is 0, range typically -100 to 100, CSS expects 0% to 200%
-            const saturation = 100 + adjustments.saturation;
-            filters.push(`saturate(${saturation}%)`);
-            
-            // Apply basic filters first
-            ctx.filter = filters.join(' ');
-            ctx.drawImage(img, 0, 0, processWidth, processHeight);
-            ctx.filter = 'none';
-            
-            // Only apply expensive pixel operations if values are significant
-            const needsHighlightsShadows = Math.abs(adjustments.highlights) > 5 || Math.abs(adjustments.shadows) > 5;
-            const needsSharpening = Math.abs(adjustments.sharpness - 1.0) > 0.1 && adjustments.sharpness !== 0;
-            
-            if (needsHighlightsShadows) {
-              const imageData = ctx.getImageData(0, 0, processWidth, processHeight);
-              const data = imageData.data;
-              
-              // Process in chunks for better performance
-              const chunkSize = 4096;
-              for (let start = 0; start < data.length; start += chunkSize) {
-                const end = Math.min(start + chunkSize, data.length);
-                for (let i = start; i < end; i += 4) {
-                  const r = data[i];
-                  const g = data[i + 1];
-                  const b = data[i + 2];
-                  
-                  // Calculate luminance (faster approximation)
-                  const luminance = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-                  
-                  // Apply highlights (affects bright areas)
-                  if (adjustments.highlights !== 0 && luminance > 0.5) {
-                    const factor = 1 + (adjustments.highlights / 100) * (luminance - 0.5) * 2;
-                    data[i] = Math.min(255, Math.max(0, r * factor));
-                    data[i + 1] = Math.min(255, Math.max(0, g * factor));
-                    data[i + 2] = Math.min(255, Math.max(0, b * factor));
-                  }
-                  
-                  // Apply shadows (affects dark areas)
-                  if (adjustments.shadows !== 0 && luminance < 0.5) {
-                    const factor = 1 + (adjustments.shadows / 100) * (0.5 - luminance) * 2;
-                    data[i] = Math.min(255, Math.max(0, r * factor));
-                    data[i + 1] = Math.min(255, Math.max(0, g * factor));
-                    data[i + 2] = Math.min(255, Math.max(0, b * factor));
-                  }
-                }
-              }
-              
-              ctx.putImageData(imageData, 0, 0);
-            }
-            
-            // Skip sharpening for now as it's too expensive - can be added as a final export step
-            
-            processed.set(layerId, canvas);
-          }
-        });
-
-        setProcessedImages(processed);
-      };
-
-      if (images.size > 0) {
-        processImages();
-      }
-    }, 16); // 16ms = ~60fps response time
-
+      const processed = new Map<number, HTMLCanvasElement>();
+      images.forEach((img, layerId) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.drawImage(img, 0, 0);
+        processed.set(layerId, canvas);
+      });
+      setProcessedImages(processed);
+    }, 16);
     return () => clearTimeout(timeoutId);
-  }, [images, layerAdjustments]);
+  }, [images]);
 
-  return (
-    <div
-      className="relative flex items-center justify-center w-full h-full"
-      style={{ width: '100%', height: '100%' }}
-    >
-        <Stage
-          width={stageWidth}
-          height={stageHeight}
-          ref={stageRef}
-          scaleX={scale}
-          scaleY={scale}
-          x={stageOffsetX}
-          y={stageOffsetY}
-        >
-        <Layer>
-          {primaryLayer && primaryImage && (() => {
-            const img = processedImages.get(primaryLayer.id) || primaryImage;
-            if (!img) return null;
+  // --- Zoom handler: always zoom around canvas center ---
+  const handleWheel = (e: any) => {
+    e.evt.preventDefault();
+    if (!primaryLayer) return;
+    // Always zoom around true canvas center (crosshairs)
+    let newZoom = canvasZoom * (e.evt.deltaY > 0 ? 0.9 : 1.1);
+    newZoom = Math.max(25, Math.min(400, newZoom));
+    setCanvasZoom(newZoom);
+    // No offset change: image stays centered under crosshairs
+  };
 
-            // Use actual image dimensions from the loaded image, not stored layer dimensions
-            const imgWidth = img.width;
-            const imgHeight = img.height;
-            
-            // Calculate fit-to-stage scaling maintaining aspect ratio
-            const imgAspect = imgWidth / imgHeight;
-            const stageAspect = stageWidth / stageHeight;
-            let displayWidth = stageWidth;
-            let displayHeight = stageHeight;
-            let offsetX = 0;
-            let offsetY = 0;
+  // --- Drag handler: move image relative to canvas center ---
+  const handleDragMove = (event: any) => {
+    if (!primaryLayer) return;
+    const scale = event.target.getStage().scaleX();
+    let dragX = event.target.x() / scale;
+    let dragY = event.target.y() / scale;
+    if (!isFinite(dragX)) dragX = 0;
+    if (!isFinite(dragY)) dragY = 0;
+    let newCenterX = dragX + displayWidth / 2;
+    let newCenterY = dragY + displayHeight / 2;
+    let dx = newCenterX - canvasCenterX;
+    let dy = newCenterY - canvasCenterY;
+    setLayerOffsets((prev) => {
+      const next = new Map(prev);
+      next.set(primaryLayer.id, { dx, dy });
+      return next;
+    });
+  };
 
-            if (imgAspect > stageAspect) {
-              // Image wider, fit to width
-              displayHeight = stageWidth / imgAspect;
-              offsetY = (stageHeight - displayHeight) / 2;
-            } else {
-              // Image taller, fit to height
-              displayWidth = stageHeight * imgAspect;
-              offsetX = (stageWidth - displayWidth) / 2;
-            }
+}
 
-            const storedPosition = layerPositions.get(primaryLayer.id);
-            const posX = storedPosition?.x ?? offsetX;
-            const posY = storedPosition?.y ?? offsetY;
-
-            return (
-              <KonvaImage
-                key={primaryLayer.id}
-                image={img}
-                x={posX}
-                y={posY}
-                width={displayWidth}
-                height={displayHeight}
-                opacity={primaryLayer.opacity ?? 1}
-                draggable={!primaryLayer.locked}
-                onDragEnd={(event) => {
-                  const { x, y } = event.target.position();
-                  setLayerPositions((prev) => {
-                    const next = new Map(prev);
-                    next.set(primaryLayer.id, { x, y });
-                    return next;
-                  });
-
-                  const centerX = x + displayWidth / 2;
-                  const centerY = y + displayHeight / 2;
-                  const screenX = stageOffsetX + centerX * scale;
-                  const screenY = stageOffsetY + centerY * scale;
-                  setScreenAnchor({ x: screenX, y: screenY });
-                }}
-                onClick={() => {}}
-              />
-            );
-          })()}
-        </Layer>
-        </Stage>
-
-      {state.layers.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-gray-500">
-            <p className="text-sm">Import an image to get started</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default MainCanvas;

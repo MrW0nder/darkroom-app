@@ -268,7 +268,7 @@ const EditorInner: React.FC<EditorPageProps> = ({ projectId, onClose, currentVie
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, []);
+  }, [isSidebarCollapsed]);
 
   const selectedLayer = useMemo(
     () => state.layers.find((layer) => layer.id === state.selectedLayerId) || null,
@@ -655,11 +655,22 @@ const EditorInner: React.FC<EditorPageProps> = ({ projectId, onClose, currentVie
     setShowZoomMenu(false);
   };
 
-  const handleCanvasWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+  // Use a ref callback for wheel event to avoid passive warning
+  const handleCanvasWheel = (event: WheelEvent) => {
     event.preventDefault();
     const delta = event.deltaY < 0 ? 10 : -10;
     setZoom((prev) => clampZoom(prev + delta));
   };
+
+  // Attach wheel event with passive: false
+  useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (!container) return;
+    container.addEventListener('wheel', handleCanvasWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', handleCanvasWheel);
+    };
+  }, [canvasContainerRef.current]);
 
   if (loading) {
     console.log('Editor in loading state');
@@ -764,7 +775,6 @@ const EditorInner: React.FC<EditorPageProps> = ({ projectId, onClose, currentVie
             <div
               ref={canvasContainerRef}
               className="flex-1 flex items-center justify-center min-w-0 min-h-0 w-full h-full relative"
-              onWheel={handleCanvasWheel}
             >
               <button
                 onClick={() => setRecenterNonce((value) => value + 1)}
@@ -802,12 +812,12 @@ const EditorInner: React.FC<EditorPageProps> = ({ projectId, onClose, currentVie
                   onCancel={handleToolCancel}
                 />
               ) : (
-                <MainCanvas width={canvasSize.width} height={canvasSize.height} zoom={zoom} recenterToken={recenterNonce} layerAdjustments={layerAdjustments} />
+                <MainCanvas width={canvasSize.width} height={canvasSize.height} zoom={zoom} recenterToken={recenterNonce} layerAdjustments={layerAdjustments} isSidebarCollapsed={isSidebarCollapsed} />
               )}
             </div>
             
             {/* Bottom Bar - Image Info */}
-            <div className="bg-gray-950 px-6 py-2 flex items-center justify-between text-sm text-gray-400">
+            <div className="bg-gray-900 px-6 py-2 flex items-center justify-between text-sm text-gray-400">
               <span>
                 {activeTool && `Active Tool: ${activeTool.charAt(0).toUpperCase() + activeTool.slice(1)}`}
               </span>
