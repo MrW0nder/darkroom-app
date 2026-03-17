@@ -12,11 +12,13 @@ const OpenSeadragonViewer = ({ imageUrl, width = 800, height = 600 }) => {
       }
       osdInstance.current = OpenSeadragon({
         element: viewerRef.current,
-        tileSources: imageUrl,
+        tileSources: {
+          type: 'image',
+          url: imageUrl
+        },
         showNavigator: true,
         minZoomLevel: 0.05,
         maxZoomLevel: 10,
-        defaultZoomLevel: 1,
         visibilityRatio: 1,
         constrainDuringPan: true,
         panHorizontal: true,
@@ -28,6 +30,10 @@ const OpenSeadragonViewer = ({ imageUrl, width = 800, height = 600 }) => {
           dblClickToZoom: true,
           dragToPan: true,
         },
+      });
+      // Fit image to editor area on load
+      osdInstance.current.addHandler('open', function() {
+        osdInstance.current.viewport.goHome();
       });
     }
     return () => {

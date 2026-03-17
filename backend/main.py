@@ -1,3 +1,14 @@
+from fastapi.responses import FileResponse
+import mimetypes
+# Custom endpoint to serve images from originals reliably
+@app.get("/api/images/{filename}")
+def get_image(filename: str):
+    originals_dir = Path(__file__).parent / "storage" / "originals"
+    file_path = originals_dir / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    mime_type, _ = mimetypes.guess_type(str(file_path))
+    return FileResponse(str(file_path), media_type=mime_type or "application/octet-stream")
 import os
 import logging
 from pathlib import Path
