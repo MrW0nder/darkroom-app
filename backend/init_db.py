@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 # Import engine from backend.db
 try:
-        from backend.db import engine as project_engine  # type: ignore
+    from backend.db import engine as project_engine  # type: ignore
     engine = project_engine
 except Exception as e:
     print("ERROR: failed importing engine from backend.db:", e)

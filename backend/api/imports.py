@@ -77,7 +77,7 @@ async def import_image(
             layer_record = Layer(
                 project_id=project_id,  # Use the provided project_id
                 type="image",  # Always "image" for now
-                content=str(save_path.resolve()),  # Use the file path of the image as content
+                content=f"/storage/originals/{unique_name}",  # Store as relative URL path
                 z_index=0,  # Default z-index
                 width=width,
                 height=height,
