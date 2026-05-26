@@ -9,6 +9,7 @@ interface Layer {
   id: number;
   project_id: number;
   type: string;
+  name: string;
   content: string | null;
   z_index: number;
   locked: boolean;
@@ -34,10 +35,23 @@ interface Adjustments {
   brightness: number;
   contrast: number;
   saturation: number;
+  vibrance: number;
   exposure: number;
   highlights: number;
   shadows: number;
   sharpness: number;
+  temperature: number;  // -50 cool → +50 warm
+  tint: number;         // -50 green → +50 magenta
+  // Color grading wheels (per tonal range)
+  shadowHue: number;        // 0–360
+  shadowSat: number;        // 0–100
+  shadowLum: number;        // -50–50
+  midtoneHue: number;
+  midtoneSat: number;
+  midtoneLum: number;
+  highlightHue: number;
+  highlightSat: number;
+  highlightLum: number;
 }
 
 interface EditorState {
@@ -57,7 +71,7 @@ interface EditorContextType {
   setCurrentProject: (project: Project | null) => void;
   setLayers: (layers: Layer[]) => void;
   setSelectedLayerId: (id: number | null) => void;
-  updateAdjustments: (adjustments: Partial<Adjustments>, options?: { recordHistory?: boolean }) => void;
+  updateAdjustments: (adjustments: Partial<Adjustments>, options?: { recordHistory?: boolean; before?: Partial<Adjustments>; isReset?: boolean }) => void;
   resetAdjustments: () => void;
   addToHistory: (action: any) => void;
   undo: () => void;
@@ -66,6 +80,8 @@ interface EditorContextType {
   canUndo: () => boolean;
   canRedo: () => boolean;
   setProcessing: (processing: boolean) => void;
+  /** Restore a previously-saved history stack (e.g. from localStorage). */
+  restoreSession: (historyStack: Array<any>, historyIndex: number) => void;
 }
 
 const createHistoryEntry = (action: any) => {
@@ -88,10 +104,16 @@ const defaultAdjustments: Adjustments = {
   brightness: 0,
   contrast: 0,
   saturation: 0,
+  vibrance: 0,
   exposure: 0,
   highlights: 0,
   shadows: 0,
   sharpness: 1.0,
+  temperature: 0,
+  tint: 0,
+  shadowHue: 0, shadowSat: 0, shadowLum: 0,
+  midtoneHue: 0, midtoneSat: 0, midtoneLum: 0,
+  highlightHue: 0, highlightSat: 0, highlightLum: 0,
 };
 
 export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -117,28 +139,79 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setState(prev => ({ ...prev, selectedLayerId: id }));
   };
 
-  const updateAdjustments = (adjustments: Partial<Adjustments>, options?: { recordHistory?: boolean }) => {
-    setState(prev => ({
-      ...prev,
-      adjustments: { ...prev.adjustments, ...adjustments },
-    }));
-    if (options?.recordHistory !== false) {
-      addToHistory({
+  const updateAdjustments = (adjustments: Partial<Adjustments>, options?: { recordHistory?: boolean; before?: Partial<Adjustments>; isReset?: boolean }) => {
+    const shouldRecord = options?.recordHistory !== false;
+    setState(prev => {
+      const merged = { ...prev.adjustments, ...adjustments };
+      if (!shouldRecord) {
+        return { ...prev, adjustments: merged };
+      }
+
+      const labelMap: Record<string, string> = {
+        brightness: 'Brightness', contrast: 'Contrast', saturation: 'Saturation',
+        exposure: 'Exposure', highlights: 'Highlights', shadows: 'Shadows',
+        sharpness: 'Sharpness', temperature: 'Temperature', tint: 'Tint',
+      };
+      const fmt = (key: string, v: number) =>
+        key === 'sharpness' ? v.toFixed(1) : (v >= 0 ? `+${Math.round(v)}` : `${Math.round(v)}`);
+      const changedKeys = Object.keys(adjustments) as (keyof Adjustments)[];
+
+      let description: string;
+      if (options?.isReset && changedKeys.length > 1) {
+        description = 'Full Reset';
+      } else if (options?.isReset && changedKeys.length === 1) {
+        const key = changedKeys[0] as string;
+        const beforeVal = options?.before ? ((options.before as any)[key] ?? 0) : ((prev.adjustments as any)[key] ?? 0);
+        const afterVal = (merged as any)[key] ?? 0;
+        description = `Reset ${labelMap[key] ?? key}\n(${fmt(key, beforeVal)} → ${fmt(key, afterVal)})`;
+      } else if (changedKeys.length === 1) {
+        const key = changedKeys[0] as string;
+        const beforeVal = options?.before ? ((options.before as any)[key] ?? 0) : ((prev.adjustments as any)[key] ?? 0);
+        const afterVal = (merged as any)[key] ?? 0;
+        const label = labelMap[key] ?? key;
+        description = `${label} ${fmt(key, afterVal)}\n(${fmt(key, beforeVal)} → ${fmt(key, afterVal)})`;
+      } else {
+        description = `Adjusted ${changedKeys.map(k => labelMap[k] ?? k).join(', ')}`;
+      }
+
+      const newHistory = prev.historyStack.slice(0, prev.historyIndex + 1);
+      newHistory.push(createHistoryEntry({
         type: 'adjustment',
+        adjustmentsBefore: { ...prev.adjustments },
+        adjustmentsAfter: merged,
         changes: adjustments,
-        description: `Adjusted ${Object.keys(adjustments).join(', ')}`,
-      });
-    }
+        description,
+      }));
+      return {
+        ...prev,
+        adjustments: merged,
+        historyStack: newHistory,
+        historyIndex: newHistory.length - 1,
+      };
+    });
   };
 
   const resetAdjustments = () => {
-    setState(prev => ({ ...prev, adjustments: { ...defaultAdjustments } }));
-    addToHistory({ type: 'adjustment', description: 'Reset adjustments' });
+    setState(prev => {
+      const newHistory = prev.historyStack.slice(0, prev.historyIndex + 1);
+      newHistory.push(createHistoryEntry({
+        type: 'adjustment',
+        adjustmentsBefore: { ...prev.adjustments },
+        adjustmentsAfter: { ...defaultAdjustments },
+        description: 'Reset adjustments',
+      }));
+      return {
+        ...prev,
+        adjustments: { ...defaultAdjustments },
+        historyStack: newHistory,
+        historyIndex: newHistory.length - 1,
+      };
+    });
   };
 
   const addToHistory = (action: any) => {
     setState(prev => {
-      const newHistory = prev.historyStack.slice(0, prev.historyIndex + 1); // Clear redo stack
+      const newHistory = prev.historyStack.slice(0, prev.historyIndex + 1);
       newHistory.push(createHistoryEntry(action));
       return {
         ...prev,
@@ -150,19 +223,26 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const undo = () => {
     setState(prev => {
-      if (prev.historyIndex > 0) {
-        return { ...prev, historyIndex: prev.historyIndex - 1 };
+      if (prev.historyIndex <= 0) return prev;
+      const prevEntry = prev.historyStack[prev.historyIndex];
+      const newIndex = prev.historyIndex - 1;
+      // Restore adjustments if this history entry has them
+      if (prevEntry?.type === 'adjustment' && prevEntry.adjustmentsBefore) {
+        return { ...prev, adjustments: { ...prevEntry.adjustmentsBefore }, historyIndex: newIndex };
       }
-      return prev; // No action if undo is unavailable
+      return { ...prev, historyIndex: newIndex };
     });
   };
 
   const redo = () => {
     setState(prev => {
-      if (prev.historyIndex < prev.historyStack.length - 1) {
-        return { ...prev, historyIndex: prev.historyIndex + 1 };
+      if (prev.historyIndex >= prev.historyStack.length - 1) return prev;
+      const newIndex = prev.historyIndex + 1;
+      const nextEntry = prev.historyStack[newIndex];
+      if (nextEntry?.type === 'adjustment' && nextEntry.adjustmentsAfter) {
+        return { ...prev, adjustments: { ...nextEntry.adjustmentsAfter }, historyIndex: newIndex };
       }
-      return prev; // No action if redo is unavailable
+      return { ...prev, historyIndex: newIndex };
     });
   };
 
@@ -179,6 +259,15 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const setProcessing = (processing: boolean) => {
     setState(prev => ({ ...prev, isProcessing: processing }));
+  };
+
+  const restoreSession = (historyStack: Array<any>, historyIndex: number) => {
+    // Re-hydrate Date objects that were serialised as strings
+    const rehyrdated = historyStack.map(entry => ({
+      ...entry,
+      timestamp: entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
+    }));
+    setState(prev => ({ ...prev, historyStack: rehyrdated, historyIndex }));
   };
 
   return (
@@ -199,6 +288,7 @@ export const EditorProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         canUndo,
         canRedo,
         setProcessing,
+        restoreSession,
       }}
     >
       {children}

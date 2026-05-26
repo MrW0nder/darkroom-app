@@ -26,3 +26,8 @@
     display: none;
   }
 }
+
+.osd-container:focus, .osd-container:active {
+  outline: none !important;
+  box-shadow: none !important;
+}

@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -168,6 +168,14 @@ function loadBuiltIndex(win) {
 }
 
 // Single instance lock
+ipcMain.handle('show-folder-dialog', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory', 'createDirectory'],
+    title: 'Choose export folder',
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {

@@ -1,245 +1,305 @@
-import React, { useState } from 'react';
-import { Palette, Sun, Droplet } from 'lucide-react';
+/**
+ * ColorGradingPanel — live per-tonal-range HSL grading.
+ * WheelBlock is a top-level component so React never unmounts/remounts it
+ * on parent re-renders, which would kill pointer-capture / slider drag state.
+ */
+import React, { useRef, useCallback, useState, useEffect } from 'react';
+import { RotateCcw, ChevronDown, ChevronRight } from 'lucide-react';
+import { useEditor } from '../../contexts/EditorContext';
 
-interface ColorWheel {
-  hue: number;
-  saturation: number;
-  luminance: number;
-}
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface ColorGradingPanelProps {
-  onApply: (settings: ColorGradingSettings) => void;
-}
+type ToneRange = 'shadow' | 'midtone' | 'highlight';
 
-interface ColorGradingSettings {
-  colorWheels: {
-    shadows: ColorWheel;
-    midtones: ColorWheel;
-    highlights: ColorWheel;
+interface WheelKeys { hue: string; sat: string; lum: string; }
+
+const WHEEL_KEYS: Record<ToneRange, WheelKeys> = {
+  shadow:    { hue: 'shadowHue',    sat: 'shadowSat',    lum: 'shadowLum' },
+  midtone:   { hue: 'midtoneHue',   sat: 'midtoneSat',   lum: 'midtoneLum' },
+  highlight: { hue: 'highlightHue', sat: 'highlightSat', lum: 'highlightLum' },
+};
+
+const WHEEL_COLORS: Record<ToneRange, string> = {
+  shadow:    '#6366f1',
+  midtone:   '#10b981',
+  highlight: '#f59e0b',
+};
+
+const DEFAULT_COLOR_GRADING = {
+  shadowHue: 0,    shadowSat: 0,    shadowLum: 0,
+  midtoneHue: 0,   midtoneSat: 0,   midtoneLum: 0,
+  highlightHue: 0, highlightSat: 0, highlightLum: 0,
+};
+
+// ─── Colour wheel ─────────────────────────────────────────────────────────────
+
+const ColorWheelPicker: React.FC<{
+  hue: number; sat: number; accent: string;
+  onChange: (hue: number, sat: number) => void;
+  onCommit: (hue: number, sat: number) => void;
+}> = ({ hue, sat, accent, onChange, onCommit }) => {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const SIZE = 76; const R = SIZE / 2;
+  const dragging = useRef(false);
+  const lastRef  = useRef({ h: hue, s: sat });
+
+  const dotPos = () => {
+    const r = (sat / 100) * (R - 7);
+    const rad = ((hue - 90) * Math.PI) / 180;
+    return { x: R + r * Math.cos(rad), y: R + r * Math.sin(rad) };
   };
-  temperature: number;
-  tint: number;
-  vibrance: number;
-  saturation: number;
-}
 
-export const ColorGradingPanel: React.FC<ColorGradingPanelProps> = ({ onApply }) => {
-  const [settings, setSettings] = useState<ColorGradingSettings>({
-    colorWheels: {
-      shadows: { hue: 0, saturation: 0, luminance: 0 },
-      midtones: { hue: 0, saturation: 0, luminance: 0 },
-      highlights: { hue: 0, saturation: 0, luminance: 0 }
-    },
-    temperature: 0,
-    tint: 0,
-    vibrance: 0,
-    saturation: 0
+  const fromXY = (clientX: number, clientY: number) => {
+    const rect = svgRef.current!.getBoundingClientRect();
+    const dx = clientX - rect.left - R, dy = clientY - rect.top - R;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const newSat = Math.min((dist / (R - 7)) * 100, 100);
+    const deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+    return { h: Math.round(((deg % 360) + 360) % 360), s: Math.round(newSat) };
+  };
+
+  const onDown = (e: React.PointerEvent) => {
+    dragging.current = true;
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    const { h, s } = fromXY(e.clientX, e.clientY);
+    lastRef.current = { h, s };
+    onChange(h, s);
+  };
+  const onMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const { h, s } = fromXY(e.clientX, e.clientY);
+    lastRef.current = { h, s };
+    onChange(h, s);
+  };
+  const onUp = () => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    onCommit(lastRef.current.h, lastRef.current.s);
+  };
+
+  const steps = 36;
+  const segments = Array.from({ length: steps }, (_, i) => {
+    const r1 = ((i / steps) * 360 - 90) * Math.PI / 180;
+    const r2 = (((i + 1) / steps) * 360 - 90) * Math.PI / 180;
+    const x1 = R + (R - 4) * Math.cos(r1), y1 = R + (R - 4) * Math.sin(r1);
+    const x2 = R + (R - 4) * Math.cos(r2), y2 = R + (R - 4) * Math.sin(r2);
+    return { d: `M ${R} ${R} L ${x1} ${y1} A ${R-4} ${R-4} 0 0 1 ${x2} ${y2} Z`, hue: (i / steps) * 360 };
   });
 
-  const handleApply = () => {
-    onApply(settings);
-  };
-
-  const ColorWheelControl = ({ 
-    label, 
-    wheel, 
-    onChange 
-  }: { 
-    label: string; 
-    wheel: ColorWheel; 
-    onChange: (wheel: ColorWheel) => void 
-  }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
-      <div className="flex items-center gap-4">
-        <div 
-          className="w-24 h-24 rounded-full border-2 border-gray-600 cursor-pointer"
-          style={{
-            background: `hsl(${wheel.hue}, ${wheel.saturation}%, ${50 + wheel.luminance}%)`
-          }}
-          onClick={() => {
-            // TODO: Implement color wheel picker interaction
-          }}
-        />
-        <div className="flex-1 space-y-2">
-          <div>
-            <label className="text-xs text-gray-400">Hue</label>
-            <input
-              type="range"
-              min="0"
-              max="360"
-              value={wheel.hue}
-              onChange={(e) => onChange({ ...wheel, hue: parseInt(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-gray-400">Saturation</label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={wheel.saturation}
-              onChange={(e) => onChange({ ...wheel, saturation: parseInt(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-gray-400">Luminance</label>
-            <input
-              type="range"
-              min="-50"
-              max="50"
-              value={wheel.luminance}
-              onChange={(e) => onChange({ ...wheel, luminance: parseInt(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+  const dot = dotPos();
+  return (
+    <svg ref={svgRef} width={SIZE} height={SIZE}
+      className="cursor-crosshair flex-shrink-0 select-none touch-none"
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+      <defs>
+        <radialGradient id={`cgFade-${accent.replace('#','')}`}>
+          <stop offset="0%"  stopColor="#1f2937" stopOpacity="0.95" />
+          <stop offset="55%" stopColor="#1f2937" stopOpacity="0" />
+        </radialGradient>
+        <clipPath id={`cgClip-${accent.replace('#','')}`}><circle cx={R} cy={R} r={R - 3} /></clipPath>
+      </defs>
+      <g clipPath={`url(#cgClip-${accent.replace('#','')})`}>
+        {segments.map((s, i) => (
+          <path key={i} d={s.d} fill={`hsl(${s.hue},80%,55%)`} />
+        ))}
+        <circle cx={R} cy={R} r={R - 4} fill={`url(#cgFade-${accent.replace('#','')})`} />
+      </g>
+      <circle cx={R} cy={R} r={R - 3} fill="none" stroke="#374151" strokeWidth={1.5} />
+      <circle cx={dot.x} cy={dot.y} r={5} fill={accent} stroke="#fff" strokeWidth={1.5} />
+      <circle cx={R} cy={R} r={2} fill="#6b7280" />
+    </svg>
   );
+};
+
+// ─── Slider row (module-level — never remounted between renders) ──────────────
+
+const SliderRow: React.FC<{
+  label: string; value: number; defaultValue?: number; min: number; max: number; accent?: string;
+  onChange: (v: number) => void; onCommit: (v: number) => void; onReset: () => void;
+}> = ({ label, value, defaultValue = 0, min, max, accent = '#3b82f6', onChange, onCommit, onReset }) => {
+  const isChanged = value !== defaultValue;
+  const inputRef  = useRef<HTMLInputElement>(null);
+
+  // Stale-ref pattern so the non-passive wheel listener never captures stale closures
+  const valueRef    = useRef(value);
+  const onChangeRef = useRef(onChange);
+  const onCommitRef = useRef(onCommit);
+  valueRef.current    = value;
+  onChangeRef.current = onChange;
+  onCommitRef.current = onCommit;
+
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    let scrollTimer: ReturnType<typeof setTimeout>;
+    let scrollStartValue: number | null = null;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (scrollStartValue === null) scrollStartValue = valueRef.current;
+      const next = Math.max(min, Math.min(max, valueRef.current + (e.deltaY < 0 ? 1 : -1)));
+      onChangeRef.current(next);
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        onCommitRef.current(valueRef.current);
+        scrollStartValue = null;
+      }, 400);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => { el.removeEventListener('wheel', onWheel); clearTimeout(scrollTimer); };
+  }, [min, max]);
 
   return (
-    <div className="p-4 bg-gray-900 text-white h-full overflow-y-auto">
-      <div className="flex items-center gap-2 mb-6">
-        <Palette className="w-5 h-5" />
-        <h2 className="text-lg font-semibold">Color Grading</h2>
-      </div>
-
-      {/* Color Wheels */}
-      <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-400 mb-4">Color Wheels</h3>
-        
-        <ColorWheelControl 
-          label="Shadows" 
-          wheel={settings.colorWheels.shadows}
-          onChange={(wheel) => setSettings({
-            ...settings,
-            colorWheels: { ...settings.colorWheels, shadows: wheel }
-          })}
-        />
-
-        <ColorWheelControl 
-          label="Midtones" 
-          wheel={settings.colorWheels.midtones}
-          onChange={(wheel) => setSettings({
-            ...settings,
-            colorWheels: { ...settings.colorWheels, midtones: wheel }
-          })}
-        />
-
-        <ColorWheelControl 
-          label="Highlights" 
-          wheel={settings.colorWheels.highlights}
-          onChange={(wheel) => setSettings({
-            ...settings,
-            colorWheels: { ...settings.colorWheels, highlights: wheel }
-          })}
-        />
-      </div>
-
-      {/* Temperature & Tint */}
-      <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-400 mb-4">Temperature & Tint</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sun className="w-4 h-4 text-orange-400" />
-              <label className="text-sm text-gray-300">Temperature</label>
-              <span className="ml-auto text-xs text-gray-400">{settings.temperature}</span>
-            </div>
-            <input
-              type="range"
-              min="-100"
-              max="100"
-              value={settings.temperature}
-              onChange={(e) => setSettings({ ...settings, temperature: parseInt(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Droplet className="w-4 h-4 text-green-400" />
-              <label className="text-sm text-gray-300">Tint</label>
-              <span className="ml-auto text-xs text-gray-400">{settings.tint}</span>
-            </div>
-            <input
-              type="range"
-              min="-100"
-              max="100"
-              value={settings.tint}
-              onChange={(e) => setSettings({ ...settings, tint: parseInt(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Vibrance & Saturation */}
-      <div className="mb-6">
-        <h3 className="text-sm font-medium text-gray-400 mb-4">Vibrance & Saturation</h3>
-        
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm text-gray-300">Vibrance</label>
-              <span className="text-xs text-gray-400">{settings.vibrance}</span>
-            </div>
-            <input
-              type="range"
-              min="-100"
-              max="100"
-              value={settings.vibrance}
-              onChange={(e) => setSettings({ ...settings, vibrance: parseInt(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm text-gray-300">Saturation</label>
-              <span className="text-xs text-gray-400">{settings.saturation}</span>
-            </div>
-            <input
-              type="range"
-              min="-100"
-              max="100"
-              value={settings.saturation}
-              onChange={(e) => setSettings({ ...settings, saturation: parseInt(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Apply Button */}
+    <div className="flex items-center gap-1.5">
+      <span className="text-[10px] text-gray-500 w-5 flex-shrink-0 select-none">{label}</span>
+      <input
+        ref={inputRef}
+        type="range" min={min} max={max} step={1} value={value}
+        className="flex-1" style={{ accentColor: accent }}
+        onChange={(e) => onChange(Number(e.target.value))}
+        onMouseUp={(e)  => onCommit(Number((e.target as HTMLInputElement).value))}
+        onTouchEnd={(e) => onCommit(Number((e.target as HTMLInputElement).value))}
+      />
+      <span className="text-[10px] font-mono text-gray-400 w-7 text-right flex-shrink-0 select-none">
+        {value > 0 ? `+${value}` : value}
+      </span>
       <button
-        onClick={handleApply}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors"
+        onClick={onReset}
+        className={`w-4 h-4 flex items-center justify-center flex-shrink-0 rounded transition-opacity ${
+          isChanged ? 'opacity-100 text-gray-400 hover:text-white' : 'opacity-0 pointer-events-none'
+        }`}
+        title={`Reset ${label}`}
       >
-        Apply Color Grading
-      </button>
-
-      {/* Reset Button */}
-      <button
-        onClick={() => setSettings({
-          colorWheels: {
-            shadows: { hue: 0, saturation: 0, luminance: 0 },
-            midtones: { hue: 0, saturation: 0, luminance: 0 },
-            highlights: { hue: 0, saturation: 0, luminance: 0 }
-          },
-          temperature: 0,
-          tint: 0,
-          vibrance: 0,
-          saturation: 0
-        })}
-        className="w-full mt-2 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded transition-colors"
-      >
-        Reset All
+        <RotateCcw className="w-2.5 h-2.5" />
       </button>
     </div>
   );
 };
+
+// ─── WheelBlock (module-level) ────────────────────────────────────────────────
+
+interface WheelBlockProps {
+  range: ToneRange;
+  label: string;
+  hue: number; sat: number; lum: number;
+  onLive:   (p: Record<string, number>) => void;
+  onCommit: (p: Record<string, number>) => void;
+}
+
+const WheelBlock: React.FC<WheelBlockProps> = ({ range, label, hue, sat, lum, onLive, onCommit }) => {
+  const k = WHEEL_KEYS[range];
+  const accent = WHEEL_COLORS[range];
+  const active = hue !== 0 || sat !== 0 || lum !== 0;
+
+  return (
+    <div className="mb-4">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className={`text-xs font-medium ${active ? 'text-white' : 'text-gray-400'}`}>{label}</span>
+        <button
+          onClick={() => onCommit({ [k.hue]: 0, [k.sat]: 0, [k.lum]: 0 })}
+          className={`flex items-center gap-0.5 text-[10px] rounded px-1.5 py-0.5 transition-all ${
+            active
+              ? 'text-gray-300 hover:text-white hover:bg-gray-700 opacity-100'
+              : 'text-gray-600 opacity-40 pointer-events-none'
+          }`}
+          title={`Reset ${label}`}
+        >
+          <RotateCcw className="w-2.5 h-2.5" /> reset
+        </button>
+      </div>
+      <div className="flex gap-3 items-center">
+        <ColorWheelPicker
+          hue={hue} sat={sat} accent={accent}
+          onChange={(h, s) => onLive({ [k.hue]: h, [k.sat]: s })}
+          onCommit={(h, s) => onCommit({ [k.hue]: h, [k.sat]: s })}
+        />
+        <div className="flex-1 space-y-1.5">
+          <SliderRow label="H" value={hue} min={0}   max={360} accent="#3b82f6" defaultValue={0}
+            onChange={(v) => onLive({ [k.hue]: v })}
+            onCommit={(v) => onCommit({ [k.hue]: v })}
+            onReset={() => onCommit({ [k.hue]: 0 })} />
+          <SliderRow label="S" value={sat} min={0}   max={100} accent="#3b82f6" defaultValue={0}
+            onChange={(v) => onLive({ [k.sat]: v })}
+            onCommit={(v) => onCommit({ [k.sat]: v })}
+            onReset={() => onCommit({ [k.sat]: 0 })} />
+          <SliderRow label="L" value={lum} min={-50} max={50}  accent="#3b82f6" defaultValue={0}
+            onChange={(v) => onLive({ [k.lum]: v })}
+            onCommit={(v) => onCommit({ [k.lum]: v })}
+            onReset={() => onCommit({ [k.lum]: 0 })} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Main Panel ───────────────────────────────────────────────────────────────
+
+export const ColorGradingPanel: React.FC = () => {
+  const { state, updateAdjustments } = useEditor();
+  const adj = state.adjustments as any;
+
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem('panel.colorgrading.collapsed') === 'true'
+  );
+  useEffect(() => {
+    localStorage.setItem('panel.colorgrading.collapsed', String(collapsed));
+  }, [collapsed]);
+
+  const live   = useCallback((p: Record<string, number>) =>
+    updateAdjustments(p, { recordHistory: false }), [updateAdjustments]);
+  const commit = useCallback((p: Record<string, number>) =>
+    updateAdjustments(p, { recordHistory: true }),  [updateAdjustments]);
+  const resetAll = useCallback(() =>
+    updateAdjustments(DEFAULT_COLOR_GRADING, { recordHistory: true, isReset: true }),
+    [updateAdjustments]);
+
+  const hasAny = Object.keys(DEFAULT_COLOR_GRADING).some((k) => (adj[k] ?? 0) !== 0);
+
+  return (
+    <div className="bg-gray-800 rounded-lg overflow-hidden">
+      {/* Header */}
+      <div
+        className={`px-4 border-b border-gray-700 flex items-center justify-between cursor-pointer select-none transition-all ${collapsed ? 'py-1' : 'py-3'}`}
+        onClick={() => setCollapsed(c => !c)}
+      >
+        <div className="flex items-center gap-1.5">
+          {collapsed
+            ? <ChevronRight className="w-3 h-3 text-gray-400" />
+            : <ChevronDown className="w-4 h-4 text-gray-400" />}
+          <h3 className={`font-semibold text-white transition-all ${collapsed ? 'text-sm' : 'text-lg'}`}>
+            Color Grading
+          </h3>
+        </div>
+        {!collapsed && hasAny && (
+          <button
+            onClick={(e) => { e.stopPropagation(); resetAll(); }}
+            className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-gray-700"
+          >
+            <RotateCcw className="w-3 h-3" /> Reset all
+          </button>
+        )}
+      </div>
+
+      {!collapsed && (
+        <div className="p-4">
+          <WheelBlock
+            range="shadow" label="Shadows"
+            hue={adj.shadowHue ?? 0} sat={adj.shadowSat ?? 0} lum={adj.shadowLum ?? 0}
+            onLive={live} onCommit={commit}
+          />
+          <WheelBlock
+            range="midtone" label="Midtones"
+            hue={adj.midtoneHue ?? 0} sat={adj.midtoneSat ?? 0} lum={adj.midtoneLum ?? 0}
+            onLive={live} onCommit={commit}
+          />
+          <WheelBlock
+            range="highlight" label="Highlights"
+            hue={adj.highlightHue ?? 0} sat={adj.highlightSat ?? 0} lum={adj.highlightLum ?? 0}
+            onLive={live} onCommit={commit}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ColorGradingPanel;

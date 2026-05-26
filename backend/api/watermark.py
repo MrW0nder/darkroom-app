@@ -1,14 +1,146 @@
-from fastapi import APIRouter, UploadFile, File, Form
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 from typing import Optional
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import io
+import uuid
+from pathlib import Path
+
+from backend.db import get_db, STORAGE_DIR
+from backend.models.layers import Layer
 
 router = APIRouter(prefix="/api/watermark", tags=["watermark"])
 
-@router.post("/add-text")
+EXPORTS_DIR = Path(STORAGE_DIR) / "exports"
+EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────
+
+def _resolve_layer_source(layer: Layer) -> Path:
+    content = layer.content
+    if not content:
+        raise HTTPException(status_code=400, detail=f"Layer {layer.id} has no image content")
+    p = Path(content)
+    if p.is_absolute() and p.exists():
+        return p
+    filename = p.name or content.replace("\\", "/").split("/")[-1]
+    candidate = Path(STORAGE_DIR) / "originals" / filename
+    if candidate.exists():
+        return candidate
+    raise HTTPException(status_code=404, detail=f"Source file not found for layer {layer.id}")
+
+
+def _load_font(size: int):
+    candidates = [
+        "C:/Windows/Fonts/arial.ttf",
+        "C:/Windows/Fonts/Arial.ttf",
+        "C:/Windows/Fonts/calibri.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/System/Library/Fonts/Helvetica.ttc",
+    ]
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except (IOError, OSError):
+            continue
+    try:
+        return ImageFont.load_default(size=size)  # type: ignore[call-arg]
+    except TypeError:
+        return ImageFont.load_default()
+
+
+def _hex_to_rgba(hex_color: str, opacity: float) -> tuple:
+    h = hex_color.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return (r, g, b, max(0, min(255, int(opacity * 255))))
+
+
+def _calc_position(canvas_w: int, canvas_h: int, item_w: int, item_h: int,
+                   position: str, margin: int = 20) -> tuple:
+    return {
+        "top-left":     (margin, margin),
+        "top-right":    (canvas_w - item_w - margin, margin),
+        "bottom-left":  (margin, canvas_h - item_h - margin),
+        "bottom-right": (canvas_w - item_w - margin, canvas_h - item_h - margin),
+        "center":       ((canvas_w - item_w) // 2, (canvas_h - item_h) // 2),
+    }.get(position, (canvas_w - item_w - margin, canvas_h - item_h - margin))
+
+
+# ── Layer-based endpoint (for the editor UI) ──────────────────────────────
+
+@router.post("/apply")
+async def apply_watermark(
+    layer_id: int = Form(...),
+    watermark_type: str = Form("text"),
+    text: Optional[str] = Form(None),
+    position: str = Form("bottom-right"),
+    font_size: int = Form(36),
+    opacity: float = Form(0.7),
+    color: str = Form("#FFFFFF"),
+    scale: float = Form(0.2),
+    watermark_image: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+):
+    """Apply a text or image watermark to a layer and return a preview URL."""
+    layer = db.query(Layer).filter(Layer.id == layer_id).first()
+    if not layer:
+        raise HTTPException(status_code=404, detail="Layer not found")
+
+    src = _resolve_layer_source(layer)
+    base_img = Image.open(str(src)).convert("RGBA")
+    w, h = base_img.size
+    overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+
+    if watermark_type == "text":
+        if not text:
+            raise HTTPException(status_code=400, detail="text is required for text watermark")
+        font = _load_font(font_size)
+        draw = ImageDraw.Draw(overlay)
+        fill = _hex_to_rgba(color, opacity)
+        try:
+            bbox = draw.textbbox((0, 0), text, font=font)
+            tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        except AttributeError:
+            tw, th = draw.textsize(text, font=font)  # type: ignore[attr-defined]
+        x, y = _calc_position(w, h, tw, th, position)
+        draw.text((x, y), text, font=font, fill=fill)
+
+    elif watermark_type == "image":
+        if not watermark_image:
+            raise HTTPException(status_code=400, detail="watermark_image is required for image watermark")
+        wm_data = await watermark_image.read()
+        wm = Image.open(io.BytesIO(wm_data)).convert("RGBA")
+        wm_w = max(1, int(w * scale))
+        wm_h = max(1, int(wm.height * wm_w / wm.width))
+        wm = wm.resize((wm_w, wm_h), Image.LANCZOS)
+        r2, g2, b2, a2 = wm.split()
+        a2 = a2.point(lambda p: int(p * max(0.0, min(1.0, opacity))))
+        wm = Image.merge("RGBA", (r2, g2, b2, a2))
+        x, y = _calc_position(w, h, wm_w, wm_h, position)
+        overlay.paste(wm, (x, y), mask=wm)
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown watermark_type: {watermark_type!r}")
+
+    result = Image.alpha_composite(base_img, overlay).convert("RGB")
+    dest_name = f"wm_{layer_id}_{uuid.uuid4().hex[:8]}.jpg"
+    dest = EXPORTS_DIR / dest_name
+    result.save(str(dest), "JPEG", quality=95)
+
+    return {
+        "success": True,
+        "layer_id": layer_id,
+        "preview_url": f"/api/export/download/{dest_name}",
+    }
+
+
 async def add_text_watermark(
     image: UploadFile = File(...),
     text: str = Form(...),

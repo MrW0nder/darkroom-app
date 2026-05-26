@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { Upload, Download, X, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://127.0.0.1:8000';
 
 interface BatchItem {
   id: string;
@@ -10,11 +13,12 @@ interface BatchItem {
 }
 
 interface BatchQueuePanelProps {
-  onImport?: (files: FileList) => void;
+  projectId: number;
+  onLayerAdded?: (layer: any) => void;
   onExport?: (layerIds: number[]) => void;
 }
 
-const BatchQueuePanel: React.FC<BatchQueuePanelProps> = ({ onImport }) => {
+const BatchQueuePanel: React.FC<BatchQueuePanelProps> = ({ projectId, onLayerAdded }) => {
   const [importQueue, setImportQueue] = useState<BatchItem[]>([]);
   const [exportQueue, setExportQueue] = useState<BatchItem[]>([]);
   const [activeTab, setActiveTab] = useState<'import' | 'export'>('import');
@@ -44,33 +48,59 @@ const BatchQueuePanel: React.FC<BatchQueuePanelProps> = ({ onImport }) => {
     const newItems: BatchItem[] = Array.from(files).map((file) => ({
       id: Math.random().toString(36).substr(2, 9),
       filename: file.name,
-      status: 'pending',
+      status: 'pending' as const,
       progress: 0,
     }));
 
     setImportQueue((prev) => [...prev, ...newItems]);
 
-    // Simulate batch import processing
-    for (const item of newItems) {
+    // Process each file sequentially against the real API
+    for (let i = 0; i < newItems.length; i++) {
+      const item = newItems[i];
+      const file = Array.from(files)[i];
+
+      // Mark as processing
       setImportQueue((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, status: 'processing' } : i))
+        prev.map((q) => (q.id === item.id ? { ...q, status: 'processing', progress: 10 } : q))
       );
 
-      // Simulate progress
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await axios.post(
+          `${API_URL}/api/import?project_id=${projectId}`,
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: (evt) => {
+              if (evt.total) {
+                const pct = Math.round((evt.loaded / evt.total) * 80) + 10; // 10–90%
+                setImportQueue((prev) =>
+                  prev.map((q) => (q.id === item.id ? { ...q, progress: pct } : q))
+                );
+              }
+            },
+          }
+        );
+
         setImportQueue((prev) =>
-          prev.map((i) => (i.id === item.id ? { ...i, progress } : i))
+          prev.map((q) =>
+            q.id === item.id ? { ...q, status: 'completed', progress: 100 } : q
+          )
+        );
+
+        if (onLayerAdded && response.data) {
+          onLayerAdded(response.data);
+        }
+      } catch (err: any) {
+        const msg = err.response?.data?.detail || err.message || 'Upload failed';
+        setImportQueue((prev) =>
+          prev.map((q) =>
+            q.id === item.id ? { ...q, status: 'failed', progress: 0, error: msg } : q
+          )
         );
       }
-
-      setImportQueue((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, status: 'completed', progress: 100 } : i))
-      );
-    }
-
-    if (onImport) {
-      onImport(files);
     }
   };
 

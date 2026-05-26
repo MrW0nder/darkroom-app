@@ -14,6 +14,8 @@ interface CropToolProps {
   imageUrl: string;
   originalWidth: number;
   originalHeight: number;
+  containerWidth?: number;
+  containerHeight?: number;
   onComplete?: () => void;
   onCancel?: () => void;
 }
@@ -36,6 +38,8 @@ const CropTool: React.FC<CropToolProps> = ({
   imageUrl,
   originalWidth,
   originalHeight,
+  containerWidth,
+  containerHeight,
   onComplete,
   onCancel,
 }) => {
@@ -57,17 +61,25 @@ const CropTool: React.FC<CropToolProps> = ({
   const transformerRef = useRef<any>(null);
   const stageRef = useRef<any>(null);
 
-  // Canvas dimensions
-  const canvasWidth = 800;
-  const canvasHeight = 600;
+  // Canvas dimensions — use container size if provided (fallback to safe defaults)
+  const canvasWidth = (containerWidth && containerWidth > 50) ? containerWidth : 800;
+  const canvasHeight = (containerHeight && containerHeight > 50) ? containerHeight : 600;
 
   // Load image
   useEffect(() => {
+    if (!imageUrl) return;
     const img = new window.Image();
     img.crossOrigin = 'anonymous';
-    img.src = imageUrl.startsWith('data:') 
-      ? imageUrl 
-      : `${API_URL}${imageUrl}`;
+    // imageUrl may already be a full URL (from resolveImageUrl) — don't double-prepend
+    if (imageUrl.startsWith('data:') || imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      img.src = imageUrl;
+    } else {
+      img.src = `${API_URL}${imageUrl}`;
+    }
+
+    img.onerror = () => {
+      console.error('CropTool: failed to load image', img.src);
+    };
     
     img.onload = () => {
       setImage(img);
@@ -107,6 +119,14 @@ const CropTool: React.FC<CropToolProps> = ({
       } else if (e.key === 'Escape') {
         e.preventDefault();
         handleCancel();
+      } else if (e.key === '[') {
+        e.preventDefault();
+        const n = rotation - 90;
+        setRotation(n < -180 ? n + 360 : n);
+      } else if (e.key === ']') {
+        e.preventDefault();
+        const n = rotation + 90;
+        setRotation(n > 180 ? n - 360 : n);
       }
     };
 
@@ -164,14 +184,16 @@ const CropTool: React.FC<CropToolProps> = ({
 
     setProcessing(true);
     
-    // Convert canvas coordinates to image coordinates
+    // Convert canvas coordinates back to actual image pixel coordinates
     const scale = Math.min(
-      canvasWidth / originalWidth,
-      canvasHeight / originalHeight
+      canvasWidth / image.naturalWidth,
+      canvasHeight / image.naturalHeight
     );
+    const offsetX = (canvasWidth - image.naturalWidth * scale) / 2;
+    const offsetY = (canvasHeight - image.naturalHeight * scale) / 2;
     
-    const imgX = (cropRect.x - (canvasWidth - originalWidth * scale) / 2) / scale;
-    const imgY = (cropRect.y - (canvasHeight - originalHeight * scale) / 2) / scale;
+    const imgX = (cropRect.x - offsetX) / scale;
+    const imgY = (cropRect.y - offsetY) / scale;
     const imgWidth = cropRect.width / scale;
     const imgHeight = cropRect.height / scale;
 
@@ -226,20 +248,17 @@ const CropTool: React.FC<CropToolProps> = ({
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 bg-gray-800 rounded-lg">
-      {/* Controls */}
-      <div className="flex flex-col gap-3">
+    <div className="flex flex-col overflow-y-auto max-h-full bg-gray-800 rounded-lg">
+      <div className="flex flex-col gap-3 p-3">
         {/* Aspect Ratio */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Aspect Ratio
-          </label>
-          <div className="flex flex-wrap gap-2">
+          <label className="block text-xs font-medium text-gray-400 mb-1">Aspect Ratio</label>
+          <div className="flex flex-wrap gap-1">
             {ASPECT_RATIOS.map((ratio) => (
               <button
                 key={ratio.label}
                 onClick={() => handleAspectRatioChange(ratio.value)}
-                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
                   aspectRatio === ratio.value
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -253,50 +272,81 @@ const CropTool: React.FC<CropToolProps> = ({
 
         {/* Rotation */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-xs font-medium text-gray-400 mb-1">
             Rotation: {rotation.toFixed(1)}°
           </label>
-          <input
-            type="range"
-            min="-180"
-            max="180"
-            step="0.1"
-            value={rotation}
-            onChange={(e) => setRotation(parseFloat(e.target.value))}
-            className="w-full"
-          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const n = rotation - 90;
+                setRotation(n < -180 ? n + 360 : n);
+              }}
+              className="px-2 py-0.5 rounded text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+              title="Rotate 90° left ([)"
+            >
+              ↺ 90°
+            </button>
+            <input
+              type="range"
+              min="-180"
+              max="180"
+              step="0.1"
+              value={rotation}
+              onChange={(e) => setRotation(parseFloat(e.target.value))}
+              className="flex-1 h-1 accent-blue-500"
+            />
+            <button
+              onClick={() => {
+                const n = rotation + 90;
+                setRotation(n > 180 ? n - 360 : n);
+              }}
+              className="px-2 py-0.5 rounded text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
+              title="Rotate 90° right (])"
+            >
+              ↻ 90°
+            </button>
+          </div>
         </div>
 
         {/* Dimensions */}
         {cropRect && (
-          <div className="text-sm text-gray-400">
-            Crop: {Math.round(cropRect.width)} × {Math.round(cropRect.height)} px
+          <div className="text-xs text-gray-400">
+            {Math.round(cropRect.width)} × {Math.round(cropRect.height)} px
           </div>
         )}
 
         {/* Error */}
         {error && (
-          <div className="p-3 bg-red-900/50 border border-red-700 rounded text-sm text-red-300">
+          <div className="p-2 bg-red-900/50 border border-red-700 rounded text-xs text-red-300">
             {error}
           </div>
         )}
       </div>
 
       {/* Canvas */}
-      <div className="relative bg-gray-900 rounded-lg overflow-hidden border-2 border-gray-700">
+      <div className="relative bg-gray-900 mx-3 rounded-lg overflow-hidden border border-gray-700">
         <Stage width={canvasWidth} height={canvasHeight} ref={stageRef}>
           <Layer>
-            {/* Background image */}
-            <KonvaImage
-              image={image}
-              x={(canvasWidth - image.width * Math.min(canvasWidth / image.width, canvasHeight / image.height)) / 2}
-              y={(canvasHeight - image.height * Math.min(canvasWidth / image.width, canvasHeight / image.height)) / 2}
-              width={image.width * Math.min(canvasWidth / image.width, canvasHeight / image.height)}
-              height={image.height * Math.min(canvasWidth / image.width, canvasHeight / image.height)}
-              opacity={0.5}
-            />
-            
-            {/* Crop rectangle */}
+            {(() => {
+              const scale = Math.min(canvasWidth / image.width, canvasHeight / image.height);
+              const scaledW = image.width * scale;
+              const scaledH = image.height * scale;
+              const cx = canvasWidth / 2;
+              const cy = canvasHeight / 2;
+              return (
+                <KonvaImage
+                  image={image}
+                  x={cx}
+                  y={cy}
+                  width={scaledW}
+                  height={scaledH}
+                  offsetX={scaledW / 2}
+                  offsetY={scaledH / 2}
+                  rotation={rotation}
+                  opacity={0.5}
+                />
+              );
+            })()}
             {cropRect && (
               <>
                 <Rect
@@ -310,23 +360,15 @@ const CropTool: React.FC<CropToolProps> = ({
                   dash={[10, 5]}
                   draggable
                   onDragEnd={(e) => {
-                    setCropRect({
-                      ...cropRect,
-                      x: e.target.x(),
-                      y: e.target.y(),
-                    });
+                    setCropRect({ ...cropRect, x: e.target.x(), y: e.target.y() });
                   }}
                   onTransformEnd={handleTransform}
                 />
                 <Transformer
                   ref={transformerRef}
-                  boundBoxFunc={(oldBox, newBox) => {
-                    // Limit minimum size
-                    if (newBox.width < 50 || newBox.height < 50) {
-                      return oldBox;
-                    }
-                    return newBox;
-                  }}
+                  boundBoxFunc={(oldBox, newBox) =>
+                    newBox.width < 50 || newBox.height < 50 ? oldBox : newBox
+                  }
                 />
               </>
             )}
@@ -334,32 +376,31 @@ const CropTool: React.FC<CropToolProps> = ({
         </Stage>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex justify-between gap-3">
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
-          disabled={loading}
-        >
-          Reset
-        </button>
-        
-        <div className="flex gap-3">
+      {/* Action Buttons — Reset + Apply on top row, Cancel underneath */}
+      <div className="flex flex-col gap-1.5 p-3">
+        <div className="flex gap-2">
           <button
-            onClick={handleCancel}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
+            onClick={handleReset}
             disabled={loading}
+            className="flex-1 px-3 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors disabled:opacity-50"
           >
-            Cancel (Esc)
+            Reset
           </button>
           <button
             onClick={handleApply}
             disabled={loading || !cropRect}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Applying...' : 'Apply Crop (Enter)'}
+            {loading ? 'Applying…' : 'Apply (Enter)'}
           </button>
         </div>
+        <button
+          onClick={handleCancel}
+          disabled={loading}
+          className="w-full px-3 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors disabled:opacity-50"
+        >
+          Cancel (Esc)
+        </button>
       </div>
     </div>
   );

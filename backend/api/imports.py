@@ -73,15 +73,16 @@ async def import_image(
                 project.cover_crop_height = height
                 db.commit()
         else:
-            # Insert into `layers` table
+            # Insert into `layers` table — place on top of existing layers
+            max_z = db.query(Layer).filter(Layer.project_id == project_id).count()
             layer_record = Layer(
-                project_id=project_id,  # Use the provided project_id
-                type="image",  # Always "image" for now
-                content=f"/storage/originals/{unique_name}",  # Store as relative URL path
-                z_index=0,  # Default z-index
+                project_id=project_id,
+                type="image",
+                content=f"/storage/originals/{unique_name}",
+                z_index=max_z,  # one above the current highest
                 width=width,
                 height=height,
-                blend_mode="normal",  # Default blend mode
+                blend_mode="normal",
                 opacity=100,
                 visible=True,
                 locked=False,

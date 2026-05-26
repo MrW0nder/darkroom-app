@@ -156,13 +156,11 @@ async def process_raw_image(
         if processed_image is None:
             raise HTTPException(status_code=501, detail="RAW processing not implemented")
         
-        # Save processed image
+        # Save processed image as JPEG
         processed_filename = f"{raw_path.stem}_processed.jpg"
         processed_path = UPLOAD_DIR / processed_filename
-        
-        # Save the processed image (placeholder - needs actual implementation)
-        # processed_image.save(str(processed_path))
-        
+        processed_image.save(str(processed_path), format="JPEG", quality=95)
+
         return {
             "message": "RAW image processed successfully",
             "original_path": image.path,
@@ -200,17 +198,20 @@ def process_raw_with_settings(file_path: str, settings: dict):
     - Apply demosaicing, white balance, exposure compensation
     - Apply tone curves and color grading
     """
-    # Placeholder implementation
-    # In production:
-    # import rawpy
-    # with rawpy.imread(file_path) as raw:
-    #     rgb = raw.postprocess(
-    #         use_camera_wb=settings.get('auto_white_balance'),
-    #         highlight_mode=rawpy.HighlightMode.Blend if settings.get('highlight_recovery') else rawpy.HighlightMode.Clip,
-    #         exp_shift=settings.get('exposure_compensation', 0.0)
-    #     )
-    #     return rgb
-    return None
+    # RAW to JPEG/PNG conversion using rawpy and Pillow
+    import rawpy
+    import numpy as np
+    from PIL import Image
+
+    with rawpy.imread(file_path) as raw:
+        rgb = raw.postprocess(
+            use_camera_wb=settings.get('auto_white_balance', False),
+            highlight_mode=rawpy.HighlightMode.Blend if settings.get('highlight_recovery', True) else rawpy.HighlightMode.Clip,
+            exp_shift=settings.get('exposure_compensation', 0.0),
+        )
+    # Convert numpy array to PIL Image
+    img = Image.fromarray(rgb)
+    return img
 
 @router.get("/raw/{image_id}/metadata")
 async def get_raw_metadata(

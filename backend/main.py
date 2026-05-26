@@ -1,5 +1,23 @@
-from fastapi.responses import FileResponse
+
 import mimetypes
+import os
+import logging
+from pathlib import Path
+from typing import Optional, List
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, FileResponse
+
+
+
+# App title must be defined before FastAPI instance
+APP_TITLE = "Darkroom Backend - Hybrid Lightroom + Photoshop"
+
+
+# ...existing code...
+
+app = FastAPI(title=APP_TITLE)
+
 # Custom endpoint to serve images from originals reliably
 @app.get("/api/images/{filename}")
 def get_image(filename: str):
@@ -27,6 +45,7 @@ from backend.api.imports import router as imports_router  # Import the imports r
 from backend.api.adjustments import router as adjustments_router  # Import adjustments router
 from backend.api.exports import router as exports_router  # Import exports router
 from backend.api.projects import router as projects_router  # Import projects router
+from backend.api.layers import router as layers_router  # Import layers router
 from backend.api.crop import router as crop_router  # Import crop router
 from backend.api.brush import router as brush_router  # Import brush router
 from backend.api.presets import router as presets_router  # Import presets router
@@ -127,6 +146,7 @@ app.include_router(imports_router)
 app.include_router(adjustments_router)
 app.include_router(exports_router)
 app.include_router(projects_router)
+app.include_router(layers_router)
 app.include_router(crop_router)
 app.include_router(brush_router)
 app.include_router(presets_router)
@@ -283,7 +303,7 @@ def get_all_layers(project_id: Optional[int] = None, db: Session = Depends(get_d
         if project_id is not None:
             logger.debug("Filtering layers by project_id: %s", project_id)
             query = query.filter(Layer.project_id == project_id)
-        layers = query.all()
+        layers = query.order_by(Layer.z_index).all()
         logger.info("Retrieved %d layers for project_id=%s", len(layers), project_id)
         for layer in layers:
             logger.debug(f"Layer {layer.id}: content={layer.content}, visible={layer.visible}, z_index={layer.z_index}")
